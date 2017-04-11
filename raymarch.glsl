@@ -176,16 +176,31 @@ float ring(vec3 p, float r, float R, float t) {
 	float pr = length(p);
 	return max(abs(p.y)-t, max(pr - R, r - pr));
 }
+float vmax(vec2 p) { return max(p.x, p.y); }
+
+float path(vec3 p) {
+	float flr = vmax(abs(p.xy) - vec2(2.,.1));
+	p.x = abs(p.x)+.02;
+	float rls = vmax(abs(p.xy-vec2(2.,1.)) - vec2(.02));
+	float rlst = max(abs(mod(p.z,.4)-.2)-.02, max(abs(p.y-.5)-.5, abs(p.x-2.)-.02));
+	return min(flr, min(rls, rlst));
+}
 
 float room(vec3 p) {
 	float extwall = -ball(p,20.);
 	float boxes = max(-ball(p,19.), box(rep(p, vec3(2.)), vec3(.8)));
 	float rings = ring(vec3(p.x, abs(p.y)-3., p.z), 8., 9., .4);
-	float rails = min(
+	rings = min(rings+.02, max(rings, box(rep(p,vec3(.4)),vec3(.1))));
+	float paths = path(vec3(length(p.xz)-13., p.y, atan(p.x, p.z)*10.));
+	paths = min(paths, max(15.-length(p.xz), min(path(p.zyx), path(p))));
+	/*float rails = min(
 		ring(p - E.xzx*1., 10.-.02, 10.+.02, .02),
 		ring(p - E.xzx*1., 15.-.02, 15.+.02, .02));
-	float ring = ring(p, 10., 15., .1);
-	return min(extwall, min(min(rings, min(rails, ring)), boxes));
+	float ring = ring(p, 10., 15., .1);*/
+	float scene = extwall;
+	scene = min(scene, min(rings, boxes));
+	scene = min(scene, paths);
+	return scene;
 }
 
 float W(vec3 p) {
@@ -216,7 +231,8 @@ void MT(vec3 p, out vec3 albedo, out float roughness) {
 }
 
 const float ML = 50.;
-vec3 LP[2], LC[2];
+#define LN 3
+vec3 LP[3], LC[3];
 vec3 trace(vec3 o, vec3 d) {
 	vec3 p,n;
 	float l = 0.;
@@ -236,13 +252,14 @@ vec3 trace(vec3 o, vec3 d) {
 #if 1
 	p += n * .01;
 	vec3 c = vec3(0.);
-	for(int i = 0; i < 2; ++i) {
+	for(int i = 0; i < LN; ++i) {
 		vec3 L = LP[i] - p;
 		float a = .01;
 		float shadow = 1.;
 #if 1
-		for (int j = 0; j < 8; ++j) {
-			float w=W(p + L * float(j+1) / 8.);
+		const int SS = 32;
+		for (int j = 0; j < SS; ++j) {
+			float w=W(p + L * float(j+1) / float(SS));
 			shadow = min(shadow, w);
 		}
 		//if (shadow < .01) break;
@@ -266,12 +283,14 @@ void main() {
 
 	LP[0] = vec3(5.*sin(T), 5., 5.*cos(T));
 	LP[1] = vec3(5.*sin(-T+3.), 5., 5.*cos(T+3.));
+	LP[2] = vec3(5.*sin(-T*.4+3.), 9.*sin(T*.7), 5.*cos(T*.5+3.));
 	LC[0] = vec3(10.);
 	LC[1] = vec3(9.,10.,5.);
+	LC[2] = vec3(14.,7.,3.);
 
 	mat3 ML = RY(M.x*2e-3) * RX(M.y*2e-3);
 	vec3 O = ML * vec3(0., 0., max(.1, M.z/10.));
-	vec3 D = ML * normalize(vec3(uv, -2.));
+	vec3 D = ML * normalize(vec3(uv, -1.44));
 
 	vec3 color = trace(O, D);
 
