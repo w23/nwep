@@ -170,8 +170,28 @@ float F4(vec3 p) {
 	return box(p, vec3(1.)) * pow(S, -float(N));
 }
 
+float ball(vec3 p, float r) { return length(p) - r; }
+vec3 rep(vec3 p, vec3 r) { return mod(p,r) - r*.5; }
+float ring(vec3 p, float r, float R, float t) {
+	float pr = length(p);
+	return max(abs(p.y)-t, max(pr - R, r - pr));
+}
+
+float room(vec3 p) {
+	float extwall = -ball(p,20.);
+	float boxes = max(-ball(p,19.), box(rep(p, vec3(2.)), vec3(.8)));
+	float rings = ring(vec3(p.x, abs(p.y)-3., p.z), 8., 9., .4);
+	float rails = min(
+		ring(p - E.xzx*1., 10.-.02, 10.+.02, .02),
+		ring(p - E.xzx*1., 15.-.02, 15.+.02, .02));
+	float ring = ring(p, 10., 15., .1);
+	return min(extwall, min(min(rings, min(rails, ring)), boxes));
+}
+
 float W(vec3 p) {
-	return F4(p);
+	float kifs = F4(p/4.);
+	float room = room(p);
+	return min(kifs, room);
 /*
 	return min(p.y + 1.,
 		min(length(p) - 1.,
@@ -213,25 +233,29 @@ vec3 trace(vec3 o, vec3 d) {
 	n = N(p);
 	d = -d;
 
-#if 0
+#if 1
 	p += n * .01;
 	vec3 c = vec3(0.);
 	for(int i = 0; i < 2; ++i) {
 		vec3 L = LP[i] - p;
+		float a = .01;
 		float shadow = 1.;
-		/*for (int j = 0; j < 8; ++j) {
+#if 1
+		for (int j = 0; j < 8; ++j) {
 			float w=W(p + L * float(j+1) / 8.);
 			shadow = min(shadow, w);
 		}
-		if (shadow < .01) break;
-		*/
-
-		float dL = max(0.,dot(n,normalize(L)));
-		c += dL * albedo * LC[i] / dot(L,L);
-	}
+		//if (shadow < .01) break;
+		shadow = pow(max(0.,shadow), .1);
 #endif
 
+		float dL = max(0.,dot(n,normalize(L)));
+		c += albedo * (a + shadow * dL * LC[i] / dot(L,L));
+	}
+#else
 	vec3 c = vec3(.05) + .95 * max(0., dot(n,normalize(vec3(1.))));
+#endif
+
 
 	return c;
 }
@@ -246,7 +270,7 @@ void main() {
 	LC[1] = vec3(9.,10.,5.);
 
 	mat3 ML = RY(M.x*2e-3) * RX(M.y*2e-3);
-	vec3 O = ML * vec3(0., 0., max(.1, M.z/20.));
+	vec3 O = ML * vec3(0., 0., max(.1, M.z/10.));
 	vec3 D = ML * normalize(vec3(uv, -2.));
 
 	vec3 color = trace(O, D);
