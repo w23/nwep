@@ -216,6 +216,7 @@ float room(vec3 p) {
 
 float W(vec3 p) {
 	float kifs = F4(p/4.);
+	//float kifs = map(p/4.);
 	float room = room(p);
 	return min(kifs, room);
 }
@@ -235,9 +236,83 @@ void MT(vec3 p, out vec3 albedo, out float roughness) {
 	//roughness = min(1.,.1+pow(noise(p*3.), 4.));
 }
 
-const float ML = 40.;
+vec3 fresnelSchlick(float cosTheta, vec3 F0) {
+	return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+float DistributionGGX(vec3 N, vec3 H, float roughness)
+{
+	float a      = roughness*roughness;
+	float a2     = a*a;
+	float NdotH  = max(dot(N, H), 0.0);
+	float NdotH2 = NdotH*NdotH;
+
+	float nom   = a2;
+	float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+	denom = PI * denom * denom;
+
+	return nom / denom;
+}
+
+float GeometrySchlickGGX(float NdotV, float roughness)
+{
+	float r = (roughness + 1.0);
+	float k = (r*r) / 8.0;
+
+	float nom   = NdotV;
+	float denom = NdotV * (1.0 - k) + k;
+
+	return nom / denom;
+}
+float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
+{
+	float NdotV = max(dot(N, V), 0.0);
+	float NdotL = max(dot(N, L), 0.0);
+	float ggx2  = GeometrySchlickGGX(NdotV, roughness);
+	float ggx1  = GeometrySchlickGGX(NdotL, roughness);
+
+	return ggx1 * ggx2;
+}
+
 #define LN 3
 vec3 LP[3], LC[3];
+
+vec3 pbf(vec3 p, vec3 V, vec3 N, float ao, vec3 albedo, float metallic, float roughness) {
+	vec3 Lo = vec3(0.0);
+
+	for(int i = 0; i < LN; ++i) {
+    vec3 L = normalize(LP[i] - p);
+    vec3 H = normalize(V + L);
+
+    float distance    = length(LP[i] - p);
+    float attenuation = 1.0 / (distance * distance);
+    vec3 radiance     = LC[i] * attenuation;
+
+		vec3 F0 = vec3(0.04);
+		F0      = mix(F0, albedo, metallic);
+		vec3 F  = fresnelSchlick(max(dot(H, V), 0.0), F0);
+
+		float NDF = DistributionGGX(N, H, roughness);
+		float G   = GeometrySmith(N, V, L, roughness);
+
+		vec3 nominator    = NDF * G * F;
+		float denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.001;
+		vec3 brdf         = nominator / denominator;
+
+		vec3 kS = F;
+		vec3 kD = vec3(1.0) - kS;
+
+		kD *= 1.0 - metallic;
+
+		float NdotL = max(dot(N, L), 0.0);
+		Lo += (kD * albedo / PI + brdf) * radiance * NdotL;
+	}
+
+	vec3 ambient = vec3(0.03) * albedo * ao;
+	return ambient + Lo;
+}
+
+const float ML = 40.;
 vec3 trace(vec3 o, vec3 d) {
 	vec3 p,n;
 	float l = 0.;
@@ -252,11 +327,15 @@ vec3 trace(vec3 o, vec3 d) {
 
 	vec3 albedo = vec3(1.);
 	n = N(p);
-	d = -d;
 
 #if 1
+	vec3 c = pbf(p + n * .01, -d, n, .0, vec3(1.),
+		pow(noise(p*4.),4.),
+		pow(noise(p*4.+40.),4.));
+#elif 0
 	p += n * .01;
-	vec3 c = vec3(.01);
+	d = -d;
+	vec3 c = vec3(.001);
 	for(int i = 0; i < LN; ++i) {
 		vec3 L = LP[i] - p;
 		float shadow = 1.;
@@ -303,5 +382,4 @@ void main() {
 	color = pow(color, vec3(1.0/2.2));
 
 	gl_FragColor = vec4(color, 1.);
-	//gl_FragColor = vec4(sin(T*10.));
 }
