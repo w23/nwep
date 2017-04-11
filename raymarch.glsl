@@ -102,10 +102,9 @@ float F(vec3 p) {
 //float VR = 2.;//.2 + (sin(T*.1) + 1.) * 4.;
 
 float F2(vec3 p) {
-	p *= 2.;
 	p = RY(T*.1) * p;
 	float S = 1.2;
-	const int N = 1;
+	const int N = 4;
 	mat3 M = RY(.3) * RZ(2.+.1*sin(T));
 	vec3 off = (vec3(-.4,-1.4,-.7));
 	p /= S;
@@ -186,19 +185,31 @@ float path(vec3 p) {
 	return min(flr, min(rls, rlst));
 }
 
+float hole(vec3 p) {
+	return box(p-vec3(33.,1.6,0.), vec3(20.,1.5,1.96));
+}
+
 float room(vec3 p) {
-	float extwall = -ball(p,20.);
+	float holes = -min(hole(vec3(abs(p.x), p.yz)), hole(vec3(abs(p.z), p.yx)));;
 	float boxes = max(-ball(p,19.), box(rep(p, vec3(2.)), vec3(.8)));
-	float rings = ring(vec3(p.x, abs(p.y)-3., p.z), 8., 9., .4);
-	rings = min(rings+.02, max(rings, box(rep(p,vec3(.4)),vec3(.1))));
+	float extwall = -ball(p,20.);
+	float wall = max(holes, min(extwall, boxes));
+
+	//float rings = ring(vec3(p.x, abs(p.y)-3., p.z), 8., 9., .4);
+	float rings = ball(p,9.);
+	rings = max(rings, abs(abs(p.y)-3.)-.5);
+	rings = min(rings, box(rep(p,vec3(11.8)), vec3(.1, 100., .1)));
+	rings = max(rings, -ball(p,8.9));
+	//rings = min(rings+.02, max(rings, box(rep(p,vec3(.4)),vec3(.2))));
 	float paths = path(vec3(length(p.xz)-13., p.y, atan(p.x, p.z)*10.));
 	paths = min(paths, max(15.-length(p.xz), min(path(p.zyx), path(p))));
+	paths = max(paths, holes);
 	/*float rails = min(
 		ring(p - E.xzx*1., 10.-.02, 10.+.02, .02),
 		ring(p - E.xzx*1., 15.-.02, 15.+.02, .02));
 	float ring = ring(p, 10., 15., .1);*/
-	float scene = extwall;
-	scene = min(scene, min(rings, boxes));
+	float scene = wall;
+	scene = min(scene, rings);
 	scene = min(scene, paths);
 	return scene;
 }
@@ -207,12 +218,6 @@ float W(vec3 p) {
 	float kifs = F4(p/4.);
 	float room = room(p);
 	return min(kifs, room);
-/*
-	return min(p.y + 1.,
-		min(length(p) - 1.,
-			min(length(p-2.*E.zxx) - .8,
-				length(p+2.*E.zxx) - .9)));
-				*/
 }
 
 vec3 N(vec3 p) {
@@ -230,7 +235,7 @@ void MT(vec3 p, out vec3 albedo, out float roughness) {
 	//roughness = min(1.,.1+pow(noise(p*3.), 4.));
 }
 
-const float ML = 50.;
+const float ML = 40.;
 #define LN 3
 vec3 LP[3], LC[3];
 vec3 trace(vec3 o, vec3 d) {
@@ -243,7 +248,7 @@ vec3 trace(vec3 o, vec3 d) {
 		if (w < .001*l || l > ML) break;
 	}
 
-	if (l > ML) return vec3(1.);
+	if (l > ML) return vec3(.0);
 
 	vec3 albedo = vec3(1.);
 	n = N(p);
@@ -251,23 +256,23 @@ vec3 trace(vec3 o, vec3 d) {
 
 #if 1
 	p += n * .01;
-	vec3 c = vec3(0.);
+	vec3 c = vec3(.01);
 	for(int i = 0; i < LN; ++i) {
 		vec3 L = LP[i] - p;
-		float a = .01;
 		float shadow = 1.;
 #if 1
 		const int SS = 32;
 		for (int j = 0; j < SS; ++j) {
+		/* FIXME */
 			float w=W(p + L * float(j+1) / float(SS));
 			shadow = min(shadow, w);
 		}
 		//if (shadow < .01) break;
-		shadow = pow(max(0.,shadow), .1);
+		shadow = pow(max(0.,shadow), .3);
 #endif
 
 		float dL = max(0.,dot(n,normalize(L)));
-		c += albedo * (a + shadow * dL * LC[i] / dot(L,L));
+		c += albedo * shadow * dL * LC[i] / dot(L,L);
 	}
 #else
 	vec3 c = vec3(.05) + .95 * max(0., dot(n,normalize(vec3(1.))));
