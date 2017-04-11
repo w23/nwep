@@ -1,6 +1,7 @@
 #include "atto/app.h"
 #define ATTO_GL_H_IMPLEMENT
 #include "atto/gl.h"
+#include "atto/math.h"
 
 #include <utility>
 #include <memory>
@@ -117,6 +118,7 @@ const char raymarch_vtx_source[] =
 class Intro {
 	int paused_;
 	ATimeUs time_resume_, time_offset_;
+	AVec3f mouse;
 
 	int frame_width, frame_height;
 
@@ -129,6 +131,7 @@ public:
 		: paused_(0)
 		, time_resume_(0)
 		, time_offset_(0)
+		, mouse(aVec3ff(0))
 		, frame_width(1280)
 		, frame_height(720)
 		, raymarch_vtx(raymarch_vtx_source)
@@ -148,6 +151,7 @@ public:
 		glUseProgram(raymarch_prg.program());
 		glUniform1f(glGetUniformLocation(raymarch_prg.program(), "T"), now);
 		glUniform2f(glGetUniformLocation(raymarch_prg.program(), "V"), a_app_state->width, a_app_state->height);
+		glUniform3f(glGetUniformLocation(raymarch_prg.program(), "M"), mouse.x, mouse.y, mouse.z);
 		glRects(-1,-1,1,1);
 	}
 
@@ -164,6 +168,16 @@ public:
 			case AK_Esc: aAppTerminate(0);
 			default: break;
 		}
+	}
+
+	void pointer(int dx, int dy, unsigned buttons, unsigned btn_ch) {
+		if (buttons) {
+			mouse.x += dx;
+			mouse.y += dy;
+		}
+
+		if (btn_ch & AB_WheelUp) mouse.z += 1.f;
+		if (btn_ch & AB_WheelDown) mouse.z -= 1.f;
 	}
 };
 
@@ -184,6 +198,7 @@ void pointer(ATimeUs ts, int dx, int dy, unsigned int buttons_changed_bits) {
 	(void)(dx);
 	(void)(dy);
 	(void)(buttons_changed_bits);
+	intro->pointer(dx, dy, a_app_state->pointer.buttons, buttons_changed_bits);
 }
 
 void attoAppInit(struct AAppProctable *ptbl) {

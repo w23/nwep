@@ -1,7 +1,9 @@
 #version 130
 uniform float T;
 uniform vec2 V;
-const vec3 E = vec3(.0,.001,1.);
+uniform vec3 M;
+
+const vec3 E = vec3(.0,1e-4,1.);
 const float PI = 3.14159265359;
 
 float hash(vec2 p){return fract(1e4*sin(17.*p.x+.1*p.y)*(.1+abs(sin(13.*p.y+p.x))));}
@@ -45,6 +47,10 @@ float box(vec3 p, vec3 s) {
 	return max(p.x, max(p.y, p.z));
 }
 
+mat3 RX(float a){
+	float s=sin(a),c=cos(a);
+	return mat3(1.,0.,0.,0.,c,-s,0.,s,c);
+}
 mat3 RY(float a){
 	float s=sin(a),c=cos(a);
 	return mat3(c,0.,s,0.,1.,0,-s,0.,c);
@@ -93,7 +99,7 @@ float F(vec3 p) {
 }
 
 //const float VR = 3.;
-float VR = 2.;//.2 + (sin(T*.1) + 1.) * 4.;
+//float VR = 2.;//.2 + (sin(T*.1) + 1.) * 4.;
 
 float F2(vec3 p) {
 	p *= 2.;
@@ -179,7 +185,7 @@ vec3 N(vec3 p) {
 	return normalize(vec3(W(p+E.yxx)-w,W(p+E.xyx)-w,W(p+E.xxy)-w));
 }
 
-void M(vec3 p, out vec3 albedo, out float roughness) {
+void MT(vec3 p, out vec3 albedo, out float roughness) {
 	if (p.y < -.9) albedo = vec3(1.); else {
 		if (p.x < -.9) albedo = vec3(1.,0.,0.); else
 		if (p.x > .9) albedo = vec3(0.,0.,1.); else
@@ -239,8 +245,9 @@ void main() {
 	LC[0] = vec3(10.);
 	LC[1] = vec3(9.,10.,5.);
 
-	vec3 O = vec3(0., 0., VR);
-	vec3 D = normalize(vec3(uv, -2.));
+	mat3 ML = RY(M.x*2e-3) * RX(M.y*2e-3);
+	vec3 O = ML * vec3(0., 0., max(.1, M.z/20.));
+	vec3 D = ML * normalize(vec3(uv, -2.));
 
 	vec3 color = trace(O, D);
 
