@@ -1,5 +1,6 @@
 #include "atto/app.h"
 #define ATTO_GL_H_IMPLEMENT
+#define ATTO_GL_DEBUG
 #include "atto/gl.h"
 #include "atto/math.h"
 
@@ -109,7 +110,7 @@ public:
 	}
 };
 
-const char raymarch_vtx_source[] =
+const char fs_vtx_source[] =
 	"void main() {\n"
 		"gl_Position = gl_Vertex;\n"
 	"}"
@@ -117,54 +118,139 @@ const char raymarch_vtx_source[] =
 
 class Intro {
 	int paused_;
-	ATimeUs time_resume_, time_offset_;
+	const ATimeUs time_end_;
+	ATimeUs time_, last_frame_time_;
+	ATimeUs loop_a_, loop_b_;
+
 	AVec3f mouse;
 
 	int frame_width, frame_height;
 
-	String raymarch_vtx;
+	String fs_vtx;
 	FileString raymarch_src;
 	Program raymarch_prg;
+	FileString post_src;
+	Program post_prg;
+	FileString out_src;
+	Program out_prg;
+
+	enum {
+		FbTex_Random = 1,
+		FbTex_Ray,
+		FbTex_Frame,
+		FbTex_COUNT
+	};
+	GLuint tex[FbTex_COUNT];
+	GLuint fb[FbTex_COUNT];
+
+	static void createTexture(GLint t, int w, int h)
+	{
+		AGL__CALL(glBindTexture(GL_TEXTURE_2D, t));
+		AGL__CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, w, h, 0, GL_RGBA, GL_FLOAT, 0));
+		AGL__CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+		AGL__CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+		AGL__CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER));
+		AGL__CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER));
+	}
 
 public:
 	Intro()
 		: paused_(0)
-		, time_resume_(0)
-		, time_offset_(0)
+		, time_end_(150 * 1000000)
+		, time_(0)
+		, last_frame_time_(0)
+		, loop_a_(0)
+		, loop_b_(time_end_)
 		, mouse(aVec3ff(0))
-		, frame_width(1280)
-		, frame_height(720)
-		, raymarch_vtx(raymarch_vtx_source)
+		, frame_width(640)
+		, frame_height(360)
+		, fs_vtx(fs_vtx_source)
 		, raymarch_src("raymarch.glsl")
-		, raymarch_prg(raymarch_vtx, raymarch_src)
+		, raymarch_prg(fs_vtx, raymarch_src)
+		, post_src("post.glsl")
+		, post_prg(fs_vtx, post_src)
+		, out_src("out.glsl")
+		, out_prg(fs_vtx, out_src)
 	{
+		glGenTextures(FbTex_COUNT, tex);
+		glGenFramebuffers(FbTex_COUNT, fb);
+
+		for (int i = 0; i < FbTex_COUNT; ++i) aAppDebugPrintf("tex[%d] = %u; fb[%d] = %u;", i, tex[i], i, fb[i]);
+
+		createTexture(FbTex_Ray, frame_width, frame_height);
+		AGL__CALL(glBindFramebuffer(GL_FRAMEBUFFER, FbTex_Ray));
+		AGL__CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, FbTex_Ray, 0));
+		int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		ATTO_ASSERT(status == GL_FRAMEBUFFER_COMPLETE);
+
+		createTexture(FbTex_Frame, frame_width, frame_height);
+		AGL__CALL(glBindFramebuffer(GL_FRAMEBUFFER, FbTex_Frame));
+		AGL__CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, FbTex_Frame, 0));
+		status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		ATTO_ASSERT(status == GL_FRAMEBUFFER_COMPLETE);
 	}
 
 	void paint(ATimeUs ts) {
-		const float now = 1e-6f * (time_offset_ + (!paused_) * (ts - time_resume_));
+		if (!paused_) {
+			const ATimeUs delta = ts - last_frame_time_;
+			time_ += delta;
+			if (time_ < loop_a_) time_ = loop_a_;
+			if (time_ > loop_b_) time_ = loop_a_ + time_ % (loop_b_ - loop_a_);
+		}
+		last_frame_time_ = ts;
 
-		//glViewport(0, 0, frame_width, frame_height);
+		const float now = 1e-6f * time_;
 
 		raymarch_prg.update();
+		post_prg.update();
+		out_prg.update();
 
-		glViewport(0, 0, a_app_state->width, a_app_state->height);
-		glUseProgram(raymarch_prg.program());
-		glUniform1f(glGetUniformLocation(raymarch_prg.program(), "T"), now);
-		glUniform2f(glGetUniformLocation(raymarch_prg.program(), "V"), a_app_state->width, a_app_state->height);
-		glUniform3f(glGetUniformLocation(raymarch_prg.program(), "M"), mouse.x, mouse.y, mouse.z);
-		glRects(-1,-1,1,1);
+		AGL__CALL(glBindTexture(GL_TEXTURE_2D, 0));
+		AGL__CALL(glBindFramebuffer(GL_FRAMEBUFFER, FbTex_Ray));
+		AGL__CALL(glViewport(0, 0, frame_width, frame_height));
+		AGL__CALL(glUseProgram(raymarch_prg.program()));
+		AGL__CALL(glUniform1f(glGetUniformLocation(raymarch_prg.program(), "T"), now));
+		AGL__CALL(glUniform1f(glGetUniformLocation(raymarch_prg.program(), "TPCT"), (float)time_ / (float)time_end_));
+		AGL__CALL(glUniform2f(glGetUniformLocation(raymarch_prg.program(), "V"), frame_width, frame_height));
+		AGL__CALL(glUniform3f(glGetUniformLocation(raymarch_prg.program(), "M"), mouse.x, mouse.y, mouse.z));
+		AGL__CALL(glRects(-1,-1,1,1));
+
+		AGL__CALL(glBindTexture(GL_TEXTURE_2D, FbTex_Ray));
+		AGL__CALL(glBindFramebuffer(GL_FRAMEBUFFER, FbTex_Frame));
+		AGL__CALL(glViewport(0, 0, frame_width, frame_height));
+		AGL__CALL(glUseProgram(post_prg.program()));
+		AGL__CALL(glUniform1i(glGetUniformLocation(post_prg.program(), "FB"), 0));
+		AGL__CALL(glUniform1f(glGetUniformLocation(post_prg.program(), "T"), now));
+		AGL__CALL(glUniform1f(glGetUniformLocation(post_prg.program(), "TPCT"), (float)time_ / (float)time_end_));
+		AGL__CALL(glUniform2f(glGetUniformLocation(post_prg.program(), "V"), frame_width, frame_height));
+		AGL__CALL(glUniform3f(glGetUniformLocation(post_prg.program(), "M"), mouse.x, mouse.y, mouse.z));
+		AGL__CALL(glRects(-1,-1,1,1));
+
+		AGL__CALL(glBindTexture(GL_TEXTURE_2D, FbTex_Frame));
+		AGL__CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+		AGL__CALL(glViewport(0, 0, a_app_state->width, a_app_state->height));
+		AGL__CALL(glUseProgram(out_prg.program()));
+		AGL__CALL(glUniform1i(glGetUniformLocation(out_prg.program(), "FB"), 0));
+		AGL__CALL(glUniform1f(glGetUniformLocation(out_prg.program(), "T"), now));
+		AGL__CALL(glUniform1f(glGetUniformLocation(out_prg.program(), "TPCT"), (float)time_ / (float)time_end_));
+		AGL__CALL(glUniform2f(glGetUniformLocation(out_prg.program(), "V"), a_app_state->width, a_app_state->height));
+		AGL__CALL(glUniform3f(glGetUniformLocation(out_prg.program(), "M"), mouse.x, mouse.y, mouse.z));
+		AGL__CALL(glRects(-1,-1,1,1));
 	}
 
-	void key(ATimeUs ts, AKey key)
-	{
+	void adjustTime(int delta) {
+		if (delta < 0 && -delta > (int)(time_ - loop_a_))
+			time_ = loop_a_;
+		else
+			time_ += delta;
+	}
+
+	void key(ATimeUs ts, AKey key) {
+		(void)ts;
 		switch (key) {
-			case AK_Space:
-				if (paused_ ^= 1)
-					time_offset_ = ts - time_resume_;
-				time_resume_ = ts;
-				break;
-			case AK_Right: time_offset_ += 5000000; break;
-			case AK_Left: time_offset_ -= 5000000; break;
+			case AK_Space: paused_ ^= 1; break;
+			case AK_Right: adjustTime(5000000); break;
+			case AK_Left: adjustTime(-5000000); break;
 			case AK_Esc: aAppTerminate(0);
 			default: break;
 		}

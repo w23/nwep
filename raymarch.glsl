@@ -1,5 +1,6 @@
 #version 130
 uniform float T;
+uniform float TPCT;
 uniform vec2 V;
 uniform vec3 M;
 
@@ -297,6 +298,10 @@ vec3 pbf(vec3 p, vec3 V, vec3 N, float ao, vec3 albedo, float metallic, float ro
 }
 
 void main() {
+	if (gl_FragCoord.y < 10.) {
+		gl_FragColor = vec4(step(gl_FragCoord.x / V.x, TPCT));
+		return;
+	}
 	vec2 uv = gl_FragCoord.xy / V * 2. - 1.;
 	uv.x *= V.x / V.y;
 
@@ -324,8 +329,5 @@ void main() {
 		color = em + pbf(p, -D, n, 0. * pow(tr.z / 128., .5), albedo, metallic, roughness);
 	}
 
-	color = color / (color + vec3(1.0));
-	color = pow(color, vec3(1.0/2.2));
-
-	gl_FragColor = vec4(color, 1.);
+	gl_FragColor = vec4(color, tr.x);
 }
