@@ -187,7 +187,7 @@ vec3 trace(vec3 o, vec3 d, float maxl) {
 	}
 	return vec3(l, minw, float(i));
 }
-vec3 pbf(vec3 p, vec3 V, vec3 N, float ao, vec3 albedo, float metallic, float roughness) {
+vec3 pbf(vec3 p, vec3 V, vec3 N, vec3 albedo, float metallic, float roughness) {
 	vec3 Lo = vec3(0.);
 	for(int i = 0; i < LN; ++i) {
     vec3 L = LP[i] - p; float LL = dot(L,L), Ls = sqrt(LL);
@@ -204,8 +204,7 @@ vec3 pbf(vec3 p, vec3 V, vec3 N, float ao, vec3 albedo, float metallic, float ro
 		vec3 brdf = DistributionGGX(NH, roughness)* G * F / (4. * NV * NL + .001);
 		Lo += ((vec3(1.) - F) * (1. - metallic)* albedo / PI + brdf) * NL * LC[i] / LL;
 	}
-	vec3 ambient = vec3(.03) * albedo * ao;
-	return ambient + Lo;
+	return Lo;
 }
 
 mat3 lookat(vec3 p, vec3 a, vec3 y) {
@@ -264,7 +263,7 @@ void main() {
 		vec3 albedo, em, n;
 		float metallic, roughness;
 		material(p, n, em, albedo, roughness, metallic);
-		color = em + pbf(p, -D, n, 0. * pow(tr.z / 128., .5), albedo, metallic, roughness);
+		color = em + pbf(p, -D, n, albedo, metallic, roughness);
 
 	gl_FragColor = vec4(color, tr.x);
 }
