@@ -7,13 +7,35 @@
 #include "../config.h"
 #include <GL/gl.h>
 #include "../ext.h"
+
+enum { Uni_T, Uni_V, Uni_FB, Uni_COUNT };
+
 #include "../shaders/fragment.inl"
+static const char *ray[Uni_COUNT] = {VAR_T, VAR_V, ""};
+#undef VAR_T
+#undef VAR_FB
+#undef VAR_V
+
 #include "../shaders/out.inl"
+static const char *out[Uni_COUNT] = { /*VAR_T*/"", VAR_V, VAR_FB };
+#undef VAR_T
+#undef VAR_FB
+#undef VAR_V
+
 #include "../shaders/post.inl"
+static const char *post[Uni_COUNT] = { VAR_T, VAR_V, VAR_FB };
+#undef VAR_T
+#undef VAR_FB
+#undef VAR_V
 
 #include "../4klang.h"
 #include "mmsystem.h"
 #include "mmreg.h"
+
+
+#pragma code_seg(".fltused")
+extern "C" { int _fltused = 1; }
+
 
 static const PIXELFORMATDESCRIPTOR pfd = {
 	sizeof(PIXELFORMATDESCRIPTOR), 1, PFD_DRAW_TO_WINDOW|PFD_SUPPORT_OPENGL|PFD_DOUBLEBUFFER, PFD_TYPE_RGBA,
@@ -63,8 +85,6 @@ static MMTIME MMTime =
 	TIME_SAMPLES, 0
 };
 
-extern "C" int __fltused = 1;
-
 static int compileProgram(const char *fragment) {
 	const int pid = oglCreateProgram();
 	const int fsId = oglCreateShader(GL_FRAGMENT_SHADER);
@@ -101,12 +121,13 @@ static void initFbTex(int fb, int tex) {
 	oglFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
 }
 
-static void paint(int prog, int src_tex, int dst_fb, float time) {
+static void paint(int prog, int src_tex, int dst_fb, const char *uni[], float time) {
 	oglUseProgram(prog);
 	glBindTexture(GL_TEXTURE_2D, src_tex);
 	oglBindFramebuffer(GL_FRAMEBUFFER, dst_fb);
-	oglUniform1f(oglGetUniformLocation(prog, "T"), time);
-	oglUniform1i(oglGetUniformLocation(prog, "FB"), 0);
+	oglUniform1f(oglGetUniformLocation(prog, uni[Uni_T]), time);
+	oglUniform2f(oglGetUniformLocation(prog, uni[Uni_V]), XRES, YRES);
+	oglUniform1i(oglGetUniformLocation(prog, uni[Uni_FB]), 0);
 	glRects(-1, -1, 1, 1);
 }
 
@@ -153,9 +174,9 @@ void entrypoint( void )
 	{
 		waveOutGetPosition(hWaveOut, &MMTime, sizeof(MMTIME));
 		const float time = (timeGetTime() - to) * 1e-3f;
-		paint(p_ray, 0, fb[FbTex_Ray], time);
-		paint(p_dof, tex[FbTex_Ray], fb[FbTex_Dof], time);
-		paint(p_out, tex[FbTex_Dof], 0, time);
+		paint(p_ray, 0, fb[FbTex_Ray], ray, time);
+		paint(p_dof, tex[FbTex_Ray], fb[FbTex_Dof], post, time);
+		paint(p_out, tex[FbTex_Dof], 0, out, time);
 		SwapBuffers(hDC);
 	} while(!GetAsyncKeyState(VK_ESCAPE) && MMTime.u.sample < 5990000);
 

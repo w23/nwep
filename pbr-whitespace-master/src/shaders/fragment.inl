@@ -4,10 +4,12 @@
 #ifndef FRAGMENT_INL_
 # define FRAGMENT_INL_
 # define VAR_T "m"
+# define VAR_V "V"
 
 const char *fragment_glsl =
- "#version 130\n"
- "uniform int m;"
+"#version 130\n"
+"uniform float m;"
+"uniform vec2 V;"
  "float v=m*.0001;"
  "const vec3 f=vec3(0.,.001,1.);"
  "const float s=3.14159;"
