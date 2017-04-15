@@ -64,16 +64,12 @@ float F4(vec3 p) {
 	return box3(p, vec3(1.)) * pow(S, -float(N));
 }
 
-bool dlight = true, detail = false;
 int mindex = 0;
-
-#define PICK(d, dn, mn) if(detail){if(dn<d){d=dn;mindex=mn;}}else d=min(d,dn);
+#define PICK(d, dn, mn) if(dn<d){d=dn;mindex=mn;}
 
 float path(vec3 p) {
 	float flr = vmax(abs(p.xy) - vec2(2.,.1));
-	if (detail)
-		//flr = flr+max(0.,.2*box2(rep2(p.xz,vec2(.1)), vec2(.01)));
-		flr = flr+max(0.,.2*box3(rep3(p,vec3(.15)), vec3(.01)));
+	flr = flr+max(0.,.2*box3(rep3(p,vec3(.15)), vec3(.01)));
 	p.x = abs(p.x)+.02;
 	float rls = vmax(abs(p.xy-vec2(2.,1.)) - vec2(.02));
 	float rlst = max(abs(mod(p.z,.4)-.2)-.02, max(abs(p.y-.5)-.5, abs(p.x-2.)-.02));
@@ -86,7 +82,6 @@ vec3 LP[LN], LC[LN];
 
 float W(vec3 p) {
 	float w = 1e5;
-	if (dlight)
 		for (int i = 0; i < LN; ++i)
 			PICK(w, length(p - LP[i]) - .1, i+100);
 
@@ -130,7 +125,6 @@ vec3 N(vec3 p) {
 }
 
 void material(vec3 p, out vec3 n, out vec3 em, out vec3 a, out float r, out float m) {
-	detail = true;
 	n = N(p);
 	em = vec3(0.,1.,1.);
 	a = vec3(0.);
@@ -169,7 +163,6 @@ void material(vec3 p, out vec3 n, out vec3 em, out vec3 a, out float r, out floa
 				m = .0;
 			}
 	}
-	detail = false;
 }
 
 float DistributionGGX(float NH, float r) {
@@ -182,13 +175,13 @@ float GeometrySchlickGGX(float NV, float r) {
 	r += 1.; r *= r / 8.;
 	return NV / (NV * (1. - r) + r);
 }
-vec3 trace(vec3 o, vec3 d, float kw, float maxl) {
+vec3 trace(vec3 o, vec3 d, float maxl) {
 	float l = 0., minw = 1e3;
 	int i;
 	for (i = 0; i < 128; ++i) {
 		vec3 p = o+d*l;
 		float w = W(p);
-		l += w * kw;
+		l += w;
 		minw = min(minw, w);
 		if (w < .002*l || l > maxl) break;
 	}
@@ -200,8 +193,8 @@ vec3 pbf(vec3 p, vec3 V, vec3 N, float ao, vec3 albedo, float metallic, float ro
     vec3 L = LP[i] - p; float LL = dot(L,L), Ls = sqrt(LL);
 		L = normalize(L);
 
-		vec3 tr = trace(p + .02 * L, L, 1., Ls);
-		if (tr.y < .005 || tr.x < Ls ) continue;
+		vec3 tr = trace(p + .02 * L, L, Ls);
+		if (tr.x + .2 < Ls ) continue;
 
     vec3 H = normalize(V + L);
 		vec3 F0 = mix(vec3(.04), albedo, metallic);
@@ -266,12 +259,11 @@ void main() {
 	vec3 color = vec3(0.);//E.zxz;
 	
 	const float maxl = 40.;
-	vec3 tr = trace(O, D, 1., maxl);
+	vec3 tr = trace(O, D, maxl);
 		vec3 p = O + tr.x * D;
 		vec3 albedo, em, n;
 		float metallic, roughness;
 		material(p, n, em, albedo, roughness, metallic);
-		dlight = false;
 		color = em + pbf(p, -D, n, 0. * pow(tr.z / 128., .5), albedo, metallic, roughness);
 
 	gl_FragColor = vec4(color, tr.x);
