@@ -15,10 +15,8 @@ void main() {
 		off = pixel*(rad-1.)*angle;
 		smpl = texture2D(FB,uv+off);
 		color += smpl.xyz;
-		//if (smpl.w < pix.w) {
 			r = length(off);
-			dof += vec4(smpl.xyz, 1.) * step(r*.01, step(r, abs(smpl.w - focus) * 1. / V.x));
-		//}
+			dof += step(smpl.w,pix.w)*vec4(smpl.xyz, 1.) * step(r*.01, step(r, abs(smpl.w - focus) * 1. / V.x));
 	}
 	color = pow(color / float(N), vec3(2.)) +  dof.xyz / dof.w;
 	gl_FragColor = vec4(pow(color / (color + 1.), vec3(1./2.2)), 1.);

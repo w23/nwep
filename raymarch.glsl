@@ -245,7 +245,7 @@ void main() {
 
 	vec3 O, A = vec3(.0);
 	if (T < 23.) {
-		O = vec3(mix(40.,11,T/23.), 2., 0.);
+		O = vec3(mix(40.,11.,T/23.), 2., 0.);
 	} else if (T < 34.) {
 		float t = T - 34.;
 		O = vec3(cos(t*.1)*13., 2., sin(t*.1)*14.);
