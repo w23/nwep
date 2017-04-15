@@ -1,6 +1,6 @@
 uniform float T;
 uniform vec2 V;
-uniform vec3 M;
+//uniform vec3 M;
 
 const vec3 E = vec3(.0,1e-3,1.);
 const float PI = 3.14159265359;
@@ -80,20 +80,6 @@ float hole(vec3 p) { return box3(p-vec3(33.,1.6,0.), vec3(20.,1.5,1.96)); }
 
 #define LN 5
 vec3 LP[LN], LC[LN];
-void initLights() {
-	float C = 11.;
-	LP[0] = vec3(C, 6.,C);
-	LP[1] = vec3(C, 6.,-C);
-	LP[2] = vec3(-C, 6.,-C);
-	LP[3] = vec3(-C, 6.,C);
-	LP[4] = vec3(0.);
-
-	LC[0] = 30.*vec3(.7,.35,.45)*mix(1.,noise(T*20.),.3);
-	LC[1] = 30.*vec3(.7,.35,.15)*mix(1.,noise(T*20.+10.),.3);
-	LC[2] = 30.*vec3(.3,.35,.75)*mix(1.,noise(T*20.+20.),.3);
-	LC[3] = 30.*vec3(.7,.35,.15)*mix(1.,noise(T*20.+30.),.3);
-	LC[4] = smoothstep(44., 50., T) * 50.*vec3(1.)*mix(1.,noise(T*20.+30.),.3);
-}
 
 float W(vec3 p) {
 	float w = 1e5;
@@ -242,7 +228,18 @@ void main() {
 	vec2 uv = gl_FragCoord.xy / V * 2. - 1.;
 	uv.x *= V.x / V.y;
 	
-	initLights();
+	float C = 11.;
+	LP[0] = vec3(C, 6.,C);
+	LP[1] = vec3(C, 6.,-C);
+	LP[2] = vec3(-C, 6.,-C);
+	LP[3] = vec3(-C, 6.,C);
+	LP[4] = vec3(0.);
+
+	LC[0] = 30.*vec3(.7,.35,.45)*mix(1.,noise(T*20.),.3);
+	LC[1] = 30.*vec3(.7,.35,.15)*mix(1.,noise(T*20.+10.),.3);
+	LC[2] = 30.*vec3(.3,.35,.75)*mix(1.,noise(T*20.+20.),.3);
+	LC[3] = 30.*vec3(.7,.35,.15)*mix(1.,noise(T*20.+30.),.3);
+	LC[4] = smoothstep(44., 50., T) * 50.*vec3(1.)*mix(1.,noise(T*20.+30.),.3);
 
 	vec3 D = normalize(vec3(uv, -1.44));
 
