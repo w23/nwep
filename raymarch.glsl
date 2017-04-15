@@ -6,14 +6,25 @@ uniform vec3 M;
 const vec3 E = vec3(.0,1e-3,1.);
 const float PI = 3.14159265359;
 
+float hash(float v){return fract(sin(v)*43758.5); }
 float hash(vec2 p){return fract(1e4*sin(17.*p.x+.1*p.y)*(.1+abs(sin(13.*p.y+p.x))));}
 float hash(vec3 p){return hash(vec2(hash(p.xy), p.z));}
+float noise(vec2 p){
+	vec2 P=floor(p);p-=P;
+	p*=p*(3.-2.*p);
+	return mix(mix(hash(P), hash(P+E.zx), p.x), mix(hash(P+E.xz), hash(P+E.zz), p.x), p.y);
+}
 float noise(vec3 p){
-	vec3 P=floor(p);p=p-P;
+	vec3 P=floor(p);p-=P;
 	p*=p*(3.-2.*p);
 	return mix(
 		mix(mix(hash(P      ), hash(P+E.zxx), p.x), mix(hash(P+E.xzx), hash(P+E.zzx), p.x), p.y),
 		mix(mix(hash(P+E.xxz), hash(P+E.zxz), p.x), mix(hash(P+E.xzz), hash(P+E.zzz), p.x), p.y), p.z);
+}
+float noise(float p){
+	float P = floor(p); p -= P;
+	p*=p*(3.-2.*p);
+	return mix(hash(P), hash(P+1.), p);
 }
 
 float box(vec3 p, vec3 s) { p = abs(p) - s; return max(p.x, max(p.y, p.z)); }
@@ -34,7 +45,7 @@ float vmax(vec2 p) { return max(p.x, p.y); }
 float F4(vec3 p) {
 	p = RY(T*.1) * p;
 	const float S = 2.8;
-	const int N = 2;
+	const int N = 5;
 	vec3 C = vec3(1.1,.9,1.9);
 	for (int i = 0; i < N; ++i) {
 		p = p * RY(.1+T*.3);
@@ -68,14 +79,32 @@ float path(vec3 p) {
 }
 float hole(vec3 p) { return box(p-vec3(33.,1.6,0.), vec3(20.,1.5,1.96)); }
 
-#define LN 3
-vec3 LP[3], LC[3];
+#define LN 5
+vec3 LP[LN], LC[LN];
+void initLights() {
+	float C = 11.;
+	LP[0] = vec3(C, 6.,C);
+	LP[1] = vec3(C, 6.,-C);
+	LP[2] = vec3(-C, 6.,-C);
+	LP[3] = vec3(-C, 6.,C);
+	LP[4] = vec3(0.);
+
+	LC[0] = 30.*vec3(.7,.35,.45)*mix(1.,noise(T*20.),.3);
+	LC[1] = 30.*vec3(.7,.35,.15)*mix(1.,noise(T*20.+10.),.3);
+	LC[2] = 30.*vec3(.3,.35,.75)*mix(1.,noise(T*20.+20.),.3);
+	LC[3] = 30.*vec3(.7,.35,.15)*mix(1.,noise(T*20.+30.),.3);
+	LC[4] = smoothstep(44., 50., T) * 50.*vec3(1.)*mix(1.,noise(T*20.+30.),.3);
+}
 
 float W(vec3 p) {
 	float w = 1e5;
 	if (dlight)
 		for (int i = 0; i < LN; ++i)
 			PICK(w, length(p - LP[i]) - .1, i+100);
+
+	float r2 = length(p.xz), a2 = atan(p.x, p.z);
+	float r3 = length(p);
+
 	float holes = -min(hole(vec3(abs(p.x), p.yz)), hole(vec3(abs(p.z), p.yx)));;
 	float plates = max(-ball(p,19.), box(rep(p, vec3(2.)), vec3(.8)));
 	float extwall = -ball(p,20.);
@@ -85,16 +114,25 @@ float W(vec3 p) {
 
 	float rings = ball(p,9.);
 	rings = max(rings, abs(abs(p.y)-3.)-.5);
+	rings = max(rings, -box(rep(vec2(a2*4.,p.y*.2), vec2(.4)), vec2(.08)));
+	if (detail) rings -= .1*noise(floor(p*10.));
 	rings = min(rings, box(rep(p,vec3(11.8)), vec3(.1, 100., .1)));
 	rings = max(rings, -ball(p,8.9));
 
-	float paths = path(vec3(length(p.xz)-13., p.y, atan(p.x, p.z)*10.));
-	paths = min(paths, max(15.-length(p.xz), min(path(p.zyx), path(p))));
+	float paths = path(vec3(r2-13., p.y, a2*10.));
+	paths = min(paths, max(15.-r2, min(path(p.zyx), path(p))));
 	paths = max(paths, holes);
 
 	PICK(w, rings, 3);
 	PICK(w, paths, 4);
-	PICK(w, F4(p/4.)*4., 5);
+	if (T > 44.) {
+		if (r3 < 8.) {
+			float s = mix(.001, 4., smoothstep(44., 54., T));
+			PICK(w, F4(p/s)*s, 5);
+		} else
+			w = min(w, r3 + 2.);
+	}
+
 	return w;
 }
 
@@ -132,7 +170,6 @@ void material(vec3 p, out vec3 n, out vec3 em, out vec3 a, out float r, out floa
 		em = vec3(0.);
 		a = vec3(.56, .57, .58);
 		m = .8;
-		r = .2;
 		r = .2 + .6 * pow(noise(p*4.+40.),4.);
 	} else if (mindex == 5) {
 		em = vec3(0.);
@@ -140,13 +177,13 @@ void material(vec3 p, out vec3 n, out vec3 em, out vec3 a, out float r, out floa
 		r = .9;
 		m = .0;
 	} else {
-	for (int i = 0; i < LN; ++i)
-		if (mindex == 100 + i) {
-			em = LC[i];
-			a = vec3(0.);
-			r = .0;
-			m = .0;
-		}
+		for (int i = 0; i < LN; ++i)
+			if (mindex == 100 + i) {
+				em = LC[i];
+				a = vec3(0.);
+				r = .0;
+				m = .0;
+			}
 	}
 	domat = false;
 	detail = false;
@@ -221,31 +258,42 @@ void main() {
 	vec2 uv = gl_FragCoord.xy / V * 2. - 1.;
 	uv.x *= V.x / V.y;
 	
-	float t = 1.;
-	LP[0] = 10.*vec3(sin(t), 1., cos(t));
-	LP[1] = 10.*vec3(sin(-t+3.), 1., cos(t+3.));
-	LP[2] = 12.*vec3(0., sin(t*.7), 0.);
-	LC[0] = vec3(10.);
-	LC[1] = vec3(9.,10.,5.);
-	LC[2] = vec3(14.,7.,3.);
+	initLights();
 
-	mat3 ML = RY(M.x*2e-3) * RX(M.y*2e-3);
-	vec3 O = ML * vec3(0., 0., max(.1, M.z/10.));
 	vec3 D = normalize(vec3(uv, -1.44));
-	mat3 LAT = lookat(O, vec3(10.,0.,0.), E.xzx);
+
+	vec3 O, A = vec3(.0);
+	if (T < 23.) {
+		O = vec3(mix(40.,11,T/23.), 2., 0.);
+	} else if (T < 34.) {
+		float t = T - 34.;
+		O = vec3(cos(t*.1)*13., 2., sin(t*.1)*14.);
+		A = vec3(20.,0.,20.);
+	} else if (T < 62.) {
+		O = vec3(cos(T*.1)*13., 2., sin(T*.1)*14.);
+	} else {
+		float t = T * 2. / 10.48;
+		float tt = floor(t);
+		O = 13.*mix(
+			vec3(noise(tt), noise(tt+4.), noise(tt+5.)),
+			vec3(noise(tt+17.), noise(tt+41.), noise(tt+35.)), t - tt);
+	}
+	float t = T * 3.;
+	O += .1 * vec3(noise(t), noise(t+1.), noise(t+3.));
+	mat3 LAT = lookat(O, A, E.xzx);
 	O += LAT * vec3(uv*.01, 0.);
 	D = LAT * D;
 
-	vec3 color = E.zxz;
+	vec3 color = vec3(0.);//E.zxz;
 	
 	const float maxl = 40.;
 	vec3 tr = trace(O, D, 1., maxl);
 	if (tr.x < maxl) {
-		dlight = false;
 		vec3 p = O + tr.x * D;
 		vec3 albedo, em, n;
 		float metallic, roughness;
 		material(p, n, em, albedo, roughness, metallic);
+		dlight = false;
 		color = em + pbf(p, -D, n, 0. * pow(tr.z / 128., .5), albedo, metallic, roughness);
 	}
 
