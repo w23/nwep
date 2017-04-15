@@ -1,6 +1,5 @@
 #version 130
 uniform float T;
-uniform float TPCT;
 uniform vec2 V;
 uniform vec3 M;
 
@@ -22,120 +21,13 @@ mat3 RX(float a){ float s=sin(a),c=cos(a); return mat3(1.,0.,0.,0.,c,-s,0.,s,c);
 mat3 RY(float a){	float s=sin(a),c=cos(a); return mat3(c,0.,s,0.,1.,0,-s,0.,c); }
 mat3 RZ(float a){ float s=sin(a),c=cos(a); return mat3(c,s,0.,-s,c,0.,0.,0.,1.); }
 
-float F0(vec3 p){
-	vec3 offs = vec3(1., 1.75, .5); // Offset point.
-	const vec2 a = sin(vec2(0, 1.57079632) + 1.57/2.);
-	const mat2 m = mat2(a.y, -a.x, a);
-	vec2 a2 = sin(vec2(0, 1.57079632) + 1.57/4. + T);
-	mat2 m2 = mat2(a2.y, -a2.x, a2);
-	const float s = 6.; // Scale factor.
-	float d = 1e5; // Distance.
-	//p  = abs(fract(p*.5)*2. - 1.); // Standard spacial repetition.
-	float amp = 1./s; // Analogous to layer amplitude.
-	for(int i=0; i<4; i++){
-			p.xy = m*p.xy;
-			p.yz = m2*p.yz;
-			p = abs(p);
-			//p.xy += step(p.x, p.y)*(p.yx - p.xy);
-			p.xz += step(p.x, p.z)*(p.zx - p.xz);
-			p.yz += step(p.y, p.z)*(p.zy - p.yz);
-			p = p*s + offs*(1. - s);
-			p.z -= step(p.z, offs.z*(1. - s)*.5)*offs.z*(1. - s);
-			d = min(d, max(max(p.x, p.y), p.z)*amp);
-			d = min(d, (length(p)-6.*amp));
-			amp /= s; // Decrease the amplitude by the scaling factor.
-	}
- 	return d - .0035; // .35 is analous to the object size.
-}
-
-float F1(vec3 p) {
-	p = RY(T) * p;
-	const float scale = 2., rscale = 1. / scale;
-	float w = 1e5;
-	vec2 a1 = sin(vec2(0., PI/2.) + 2. + T);
-	mat2 m1 = mat2(a1.y, -a1.x, a1);
-	vec2 a2 = sin(vec2(0., PI/2.) + .1  - T);
-	mat2 m2 = mat2(a2.y, -a2.x, a2);
-	float bs = .3;
-
-	float s = 1.;
-	const int N = 4;
-	for (int i = 0; i < N; ++i) {
-
-		//p = abs(p);
-		p.xy += step(p.x, p.y)*(p.yx - p.xy);
-    p.xz += step(p.x, p.z)*(p.zx - p.xz);
-    p.yz += step(p.y, p.z)*(p.zy - p.yz);
-		p.yx = m2 * p.yx;
-		p.zy = m1 * p.zy;
-
-		vec2 ss = vec2(.5,2.) * s;
-		float d = min(min(
-			box(p, vec3(bs) * ss.yxx),
-			box(p, vec3(bs) * ss.xyx)),
-			box(p, vec3(bs) * ss.xxy));
-		d = max(-d, box(p, vec3(bs) * s));
-		w = min(w, d);
-
-		p.x -= .3;
-		p = p * scale;
-		s *= rscale;
-	}
-
-	return w - .002;
-}
-
-float F2(vec3 p) {
-	p = RY(T*.1) * p;
-	float S = 1.2;
-	const int N = 4;
-	mat3 M = RY(.3) * RZ(2.+.1*sin(T));
-	vec3 off = (vec3(-.4,-1.4,-.7));
-	p /= S;
-	for (int i = 0; i < N; ++i) {
-		p.xy += step(p.x, p.y)*(p.yx - p.xy);
-    p.xz += step(p.x, p.z)*(p.zx - p.xz);
-		p = abs(p);
-    p.yz += step(p.y, p.z)*(p.zy - p.yz);
-		p *= S;
-		p += off;
-		p = M * p;
-	}
-	//return (max(-box(p,vec3(.9,1e5,.9)*S), length(p) - S * 1.3) * (pow(1.3, -float(N)))) * S;
-	return max(-box(p,vec3(.9,1e5,.9)*S), length(p) - S * 1.3) * pow(S, -float(N));
-}
-
-float F3(vec3 p) {
-	p = RY(T*.1) * p;
-	const float S = 3.;
-	const int N = 8;
-	vec3 C = vec3(1.,1.9,1.1);
-	for (int i = 0; i < N; ++i) {
-		p = p * RY(.1);
-		p = abs(p);
-		p.xy += step(p.x, p.y)*(p.yx - p.xy);
-    p.xz += step(p.x, p.z)*(p.zx - p.xz);
-    p.yz += step(p.y, p.z)*(p.zy - p.yz);
-		p = p * RZ(.1);
-		p.xy = mix(p.xy, C.xy, S);
-		//p.x = S * p.x - C.x * (S - 1.);
-		//p.y = S * p.y - C.y * (S - 1.);
-		//p.z = S * p.z - C.z * (S - 1.);
-		p.z = S * p.z;
-		if (p.z > .5 * C.z * (S - 1.))
-			p.z -= C.z * (S - 1.);
-	}
-	//return (length(p) - 2.) * pow(S, -float(N));
-	return box(p, vec3(2.)) * pow(S, -float(N));
-}
-
 float F4(vec3 p) {
-	//p = RY(T*.1) * p;
+	p = RY(T*.1) * p;
 	const float S = 2.8;
 	const int N = 5;
 	vec3 C = vec3(1.,.9,1.1);
 	for (int i = 0; i < N; ++i) {
-		//p = p * RY(.1+T*.3);
+		p = p * RY(.1+T*.3);
 		p = abs(p);
 		p.xy += step(p.x, p.y)*(p.yx - p.xy);
     p.xz += step(p.x, p.z)*(p.zx - p.xz);
@@ -203,7 +95,6 @@ bool dlight = true;
 
 float W(vec3 p) {
 	float kifs = F4(p/4.);
-	//float kifs = map(p/4.);
 	float room = room(p);
 	if (dlight) room = min(room, lights(p));
 	return min(kifs, room);
@@ -233,7 +124,6 @@ void material(vec3 p, out vec3 n, out vec3 em, out vec3 albedo, out float roughn
 		roughness = .2 + .6 * pow(noise(p*4.+40.),4.);
 	}
 }
-
 
 vec3 fresnelSchlick(float cosTheta, vec3 F0) { return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0); }
 float DistributionGGX(vec3 N, vec3 H, float r) {
@@ -297,11 +187,14 @@ vec3 pbf(vec3 p, vec3 V, vec3 N, float ao, vec3 albedo, float metallic, float ro
 	return ambient + Lo;
 }
 
+mat3 lookat(vec3 p, vec3 a, vec3 y) {
+	vec3 z = normalize(p - a);
+	vec3 x = normalize(cross(y, z));
+	y = cross(z, x);
+	return mat3(x, y, z);
+}
+
 void main() {
-	if (gl_FragCoord.y < 10.) {
-		gl_FragColor = vec4(step(gl_FragCoord.x / V.x, TPCT));
-		return;
-	}
 	vec2 uv = gl_FragCoord.xy / V * 2. - 1.;
 	uv.x *= V.x / V.y;
 
@@ -314,7 +207,10 @@ void main() {
 
 	mat3 ML = RY(M.x*2e-3) * RX(M.y*2e-3);
 	vec3 O = ML * vec3(0., 0., max(.1, M.z/10.));
-	vec3 D = ML * normalize(vec3(uv, -1.44));
+	vec3 D = normalize(vec3(uv, -1.44));
+	mat3 LAT = lookat(O, LP[0], E.xzx);
+	O += LAT * vec3(uv, 0.);
+	D = LAT * D;
 
 	vec3 color = E.zxz;
 	
