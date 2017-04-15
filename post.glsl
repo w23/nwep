@@ -1,14 +1,13 @@
 uniform sampler2D FB;
 uniform vec2 V;
-uniform float T;
 
 void main() {
 	vec2 uv = gl_FragCoord.xy / V;
 	vec4 pix = texture2D(FB, uv);
 	vec3 color = vec3(0.);
 
-	float focus = 2.;//15.+8.*sin(T);
-	const int N = 2*128;
+	float focus = 2.;
+	const int N = 256;
 	const float GA = 2.399;
 	mat2 rot = mat2(cos(GA),sin(GA),-sin(GA),cos(GA));
 	vec3 bloom = vec3(0.);
@@ -32,9 +31,6 @@ void main() {
 	}
 	color += pow(bloom / float(N), vec3(2.));
 	color += dof.xyz / dof.w;
-
 	color = color / (color + 1.);
-	//color = mix(color, vec3(1.,0.,0.), step(abs(pix.w-focus),.1));
 	gl_FragColor = vec4(pow(color, vec3(1./2.2)), 1.);
-	//gl_FragColor = vec4(pix.w)/20.;
 }

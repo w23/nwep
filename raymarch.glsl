@@ -189,24 +189,15 @@ void material(vec3 p, out vec3 n, out vec3 em, out vec3 a, out float r, out floa
 	detail = false;
 }
 
-vec3 fresnelSchlick(float cosTheta, vec3 F0) { return F0 + (1. - F0) * pow(1. - cosTheta, 5.); }
-float DistributionGGX(vec3 N, vec3 H, float r) {
+float DistributionGGX(float NH, float r) {
 	r *= r; r *= r;
-	float NdotH  = max(dot(N, H), .0);
-	float denom = NdotH * NdotH * (r - 1.) + 1.;
+	float denom = NH * NH * (r - 1.) + 1.;
 	denom = PI * denom * denom;
 	return r / denom;
 }
-float GeometrySchlickGGX(float NdotV, float r) {
+float GeometrySchlickGGX(float NV, float r) {
 	r += 1.; r *= r / 8.;
-	return NdotV / (NdotV * (1. - r) + r);
-}
-float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
-	float NdotV = max(dot(N, V), 0.);
-	float NdotL = max(dot(N, L), 0.);
-	float ggx2  = GeometrySchlickGGX(NdotV, roughness);
-	float ggx1  = GeometrySchlickGGX(NdotL, roughness);
-	return ggx1 * ggx2;
+	return NV / (NV * (1. - r) + r);
 }
 vec3 trace(vec3 o, vec3 d, float kw, float maxl) {
 	float l = 0., minw = 1e3;
@@ -230,18 +221,12 @@ vec3 pbf(vec3 p, vec3 V, vec3 N, float ao, vec3 albedo, float metallic, float ro
 		if (tr.y < .005 || tr.x < Ls ) continue;
 
     vec3 H = normalize(V + L);
-    vec3 radiance = LC[i] / LL;
 		vec3 F0 = mix(vec3(.04), albedo, metallic);
-		vec3 F  = fresnelSchlick(max(dot(H, V), .0), F0);
-		float NDF = DistributionGGX(N, H, roughness);
-		float G   = GeometrySmith(N, V, L, roughness);
-		vec3 nominator    = NDF * G * F;
-		float denominator = 4. * max(dot(N, V), .0) * max(dot(N, L), .0) + .001;
-		vec3 brdf         = nominator / denominator;
-		vec3 kD = vec3(1.) - F;
-		kD *= 1. - metallic;
-		float NdotL = max(dot(N, L), 0.);
-		Lo += (kD * albedo / PI + brdf) * radiance * NdotL;
+		float HV = max(dot(H, V), .0), NV = max(dot(N, V), .0), NL = max(dot(N, L), 0.), NH = max(dot(N, H), 0.);
+		vec3 F = F0 + (1. - F0) * pow(1. - HV, 5.);
+		float G = GeometrySchlickGGX(NV, roughness) * GeometrySchlickGGX(NL, roughness);
+		vec3 brdf = DistributionGGX(NH, roughness)* G * F / (4. * NV * NL + .001);
+		Lo += ((vec3(1.) - F) * (1. - metallic)* albedo / PI + brdf) * NL * LC[i] / LL;
 	}
 	vec3 ambient = vec3(.03) * albedo * ao;
 	return ambient + Lo;
