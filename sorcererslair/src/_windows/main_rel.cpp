@@ -37,11 +37,11 @@ static HWAVEOUT hWaveOut;
 #pragma data_seg(".wavefmt")
 static WAVEFORMATEX WaveFMT =
 {
-#ifdef FLOAT_32BIT	
+#ifdef FLOAT_32BIT
 	WAVE_FORMAT_IEEE_FLOAT,
 #else
 	WAVE_FORMAT_PCM,
-#endif		
+#endif
 	2,                                   // channels
 	SAMPLE_RATE,                         // samples per sec
 	SAMPLE_RATE*sizeof(SAMPLE_TYPE) * 2, // bytes per sec
@@ -61,25 +61,7 @@ static MMTIME MMTime =
 	TIME_SAMPLES, 0
 };
 
-#define FULLSCREEN
-//#define SHADER_DEBUG
-void entrypoint( void )
-{
-	// initialize window
-	#ifdef FULLSCREEN
-	ChangeDisplaySettings(&screenSettings,CDS_FULLSCREEN);
-	ShowCursor(0);
-	HDC hDC = GetDC(CreateWindow((LPCSTR)0xC018, 0, WS_POPUP | WS_VISIBLE, 0, 0, XRES, YRES, 0, 0, 0, 0));
-	#else
-	HDC hDC = GetDC(CreateWindow("static", 0, WS_POPUP | WS_VISIBLE, 0, 0, XRES, YRES, 0, 0, 0, 0));
-	#endif	
-
-	// initalize opengl
-	SetPixelFormat(hDC,ChoosePixelFormat(hDC,&pfd),&pfd);
-	wglMakeCurrent(hDC,wglCreateContext(hDC));
-	EXT_Init();
-
-	// initialize, compile and link shader(s)
+static int compileProgram(const char *fragment) {
 	const int pid = oglCreateProgram();
 	const int fsId = oglCreateShader(GL_FRAGMENT_SHADER);
 	oglShaderSource(fsId, 1, &fragment, 0);
@@ -101,6 +83,58 @@ void entrypoint( void )
 
 	oglAttachShader(pid, fsId);
 	oglLinkProgram(pid);
+}
+
+static void initFbTex(int fb, int tex, float time) {
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, XRES, YRES, 0, GL_RGBA, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	oglBindFramebuffer(GL_FRAMEBUFFER, fb);
+	oglFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+}
+
+static void paint(int prog, int src_tex, int dst_fb, float time) {
+	oglUseProgram(prog);
+	glTexture2D(GL_TEXTURE_2D, src_tex);
+	oglBindFramebuffer(GL_FRAMEBUFFER, dst_fb);
+	oglUniform1f(oglGetUniformLocation(prog, "T"), time);
+	oglUniform1i(oglGetUniformLocation(prog, "FB"), 0);
+	glRects(-1, -1, 1, 1);
+}
+
+enum { FbTex_Ray = 1, FbTex_Dof, FbTex_COUNT };
+
+#define FULLSCREEN
+//#define SHADER_DEBUG
+void entrypoint( void )
+{
+	// initialize window
+	#ifdef FULLSCREEN
+	ChangeDisplaySettings(&screenSettings,CDS_FULLSCREEN);
+	ShowCursor(0);
+	HDC hDC = GetDC(CreateWindow((LPCSTR)0xC018, 0, WS_POPUP | WS_VISIBLE, 0, 0, XRES, YRES, 0, 0, 0, 0));
+	#else
+	HDC hDC = GetDC(CreateWindow("static", 0, WS_POPUP | WS_VISIBLE, 0, 0, XRES, YRES, 0, 0, 0, 0));
+	#endif
+
+	// initalize opengl
+	SetPixelFormat(hDC,ChoosePixelFormat(hDC,&pfd),&pfd);
+	wglMakeCurrent(hDC,wglCreateContext(hDC));
+	EXT_Init();
+
+	const int p_ray = compileProgram(fragment);
+	const int p_dof = compileProgram(fragment_dof);
+	const int p_out = compileProgram(fragment_out);
+
+	int tex[FbTex_COUNT], fb[FbTex_COUNT];
+	glGenTextures(FbTex_COUNT, tex);
+	oglGenFramebuffers(FbTex_COUNT, fb);
+
+	initFbTex(tex[FbTex_Ray], fb[FbTex_Ray]);
+	initFbTex(tex[FbTex_Dof], fb[FbTex_Dof]);
 
 	// initialize sound
 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)_4klang_render, lpSoundBuffer, 0, 0);
@@ -110,12 +144,13 @@ void entrypoint( void )
 	const int to = timeGetTime();
 	
 	// play intro
-	do 
+	do
 	{
 		waveOutGetPosition(hWaveOut, &MMTime, sizeof(MMTIME));
-		oglUseProgram(pid);
-		oglUniform1i(oglGetUniformLocation(pid, "v"), timeGetTime() - to);
-		glRects(-1, -1, 1, 1);
+		const float time = (timeGetTime() - to) * 1e-3f;
+		paint(p_ray, 0, fb[FbTex_Ray], time);
+		paint(p_dof, tex[FbTex_Ray], fb[FbTex_Dof], time);
+		paint(p_out, tex[FbTex_Dof], 0, time);
 		SwapBuffers(hDC);
 	} while(!GetAsyncKeyState(VK_ESCAPE) && MMTime.u.sample < 7990000);
 

@@ -13,31 +13,39 @@
 #include <GL/gl.h>
 #include "glext.h"
 
-
-#ifdef DEBUG
-#define NUMFUNCIONES 12
+#define FUNCLIST \
+  FUNCLIST_DO(PFNGLCREATESHADERPROC, CreateShader) \
+  FUNCLIST_DO(PFNGLSHADERSOURCEPROC, ShaderSource) \
+  FUNCLIST_DO(PFNGLCOMPILESHADERPROC, CompileShader) \
+  FUNCLIST_DO(PFNGLCREATEPROGRAMPROC, CreateProgram) \
+  FUNCLIST_DO(PFNGLATTACHSHADERPROC, AttachShader) \
+  FUNCLIST_DO(PFNGLLINKPROGRAMPROC, LinkProgram) \
+  FUNCLIST_DO(PFNGLUSEPROGRAMPROC, UseProgram) \
+  FUNCLIST_DO(PFNGLGETUNIFORMLOCATIONPROC, GetUniformLocation) \
+  FUNCLIST_DO(PFNGLUNIFORM1IPROC, Uniform1i) \
+  FUNCLIST_DO(PFNGLUNIFORM1FPROC, Uniform1f) \
+  FUNCLIST_DO(PFNGLUNIFORM2FPROC, Uniform2f) \
+  FUNCLIST_DO(PFNGLUNIFORM3FPROC, Uniform3f) \
+  FUNCLIST_DO(PFNGLBINDFRAMEBUFFERPROC, BindFramebuffer) \
+  FUNCLIST_DO(PFNGLFRAMEBUFFERTEXTURE2DPROC, FramebufferTexture2D)
+#ifndef DEBUG
+#define FUNCLIST_DBG
 #else
-#define NUMFUNCIONES 10
+#define FUNCLIST_DBG \
+  FUNCLIST_DO(PFNGLGETPROGRAMINFOLOGPROC, GetProgramInfoLog) \
+  FUNCLIST_DO(PFNGLGETSHADERINFOLOGPROC, GetShaderInfoLog) \
+  FUNCLIST_DO(PFNGLCHECKFRAMEBUFFERSTATUSPROC, CheckFramebufferStatus)
 #endif
 
-extern void *myglfunc[9];
+#define FUNCLIST_DO(T,N) "gl" #N "\0"
+static const char gl_names[] =
+FUNCLIST FUNCLIST_DBG
+;
+#undef FUNCLIST_DO
 
-
-#define oglCreateProgram	            ((PFNGLCREATEPROGRAMPROC)myglfunc[0])
-#define oglCreateShader		            ((PFNGLCREATESHADERPROC)myglfunc[1])
-#define oglShaderSource                 ((PFNGLSHADERSOURCEPROC)myglfunc[2])
-#define oglCompileShader                ((PFNGLCOMPILESHADERPROC)myglfunc[3])
-#define oglAttachShader                 ((PFNGLATTACHSHADERPROC)myglfunc[4])
-#define oglLinkProgram                  ((PFNGLLINKPROGRAMPROC)myglfunc[5])
-#define oglUseProgram                   ((PFNGLUSEPROGRAMPROC)myglfunc[6])
-//#define oglUniform4fv                   ((PFNGLUNIFORM4FVPROC)myglfunc[7])
-#define oglUniform1i                    ((PFNGLUNIFORM1IPROC)myglfunc[7])
-#define oglGetUniformLocation           ((PFNGLGETUNIFORMLOCATIONARBPROC)myglfunc[8])
-
-#ifdef DEBUG 
-#define oglGetObjectParameteriv         ((PFNGLGETOBJECTPARAMETERIVARBPROC)myglfunc[10])
-#define oglGetInfoLog                   ((PFNGLGETINFOLOGARBPROC)myglfunc[11])
-#endif
+#define FUNCLIST_DO(T,N) extern T ogl##N;
+FUNCLIST FUNCLIST_DBG
+#undef FUNCLIST_DO
 
 // init
 void EXT_Init( void );
