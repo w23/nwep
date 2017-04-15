@@ -266,14 +266,12 @@ void main() {
 	
 	const float maxl = 40.;
 	vec3 tr = trace(O, D, 1., maxl);
-	if (tr.x < maxl) {
 		vec3 p = O + tr.x * D;
 		vec3 albedo, em, n;
 		float metallic, roughness;
 		material(p, n, em, albedo, roughness, metallic);
 		dlight = false;
 		color = em + pbf(p, -D, n, 0. * pow(tr.z / 128., .5), albedo, metallic, roughness);
-	}
 
 	gl_FragColor = vec4(color, tr.x);
 }
