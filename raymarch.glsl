@@ -1,4 +1,3 @@
-#version 130
 uniform float T;
 uniform vec2 V;
 uniform vec3 M;

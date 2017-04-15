@@ -11,22 +11,8 @@
 enum { Uni_T, Uni_V, Uni_FB, Uni_COUNT };
 
 #include "../shaders/fragment.inl"
-static const char *ray[Uni_COUNT] = {VAR_T, VAR_V, ""};
-#undef VAR_T
-#undef VAR_FB
-#undef VAR_V
-
 #include "../shaders/out.inl"
-static const char *out[Uni_COUNT] = { /*VAR_T*/"", VAR_V, VAR_FB };
-#undef VAR_T
-#undef VAR_FB
-#undef VAR_V
-
 #include "../shaders/post.inl"
-static const char *post[Uni_COUNT] = { VAR_T, VAR_V, VAR_FB };
-#undef VAR_T
-#undef VAR_FB
-#undef VAR_V
 
 #include "../4klang.h"
 #include "mmsystem.h"
@@ -85,6 +71,7 @@ static MMTIME MMTime =
 	TIME_SAMPLES, 0
 };
 
+#define SHADER_DEBUG
 static int compileProgram(const char *fragment) {
 	const int pid = oglCreateProgram();
 	const int fsId = oglCreateShader(GL_FRAGMENT_SHADER);
@@ -100,13 +87,25 @@ static int compileProgram(const char *fragment) {
 	oglGetInfoLog(fsId, 2047, NULL, (char*)info);
 	if (!result)
 	{
-		MessageBox(NULL, info, "", 0x00000000L);
+		MessageBox(NULL, info, "COMPILE", 0x00000000L);
 		ExitProcess(0);
 	}
 #endif
 
 	oglAttachShader(pid, fsId);
 	oglLinkProgram(pid);
+
+#ifdef SHADER_DEBUG
+#define oglGetObjectParameteriv ((PFNGLGETOBJECTPARAMETERIVARBPROC) wglGetProcAddress("glGetObjectParameterivARB"))
+#define oglGetInfoLog ((PFNGLGETINFOLOGARBPROC) wglGetProcAddress("glGetInfoLogARB"))
+		oglGetObjectParameteriv(pid, GL_OBJECT_LINK_STATUS_ARB, &result);
+		oglGetInfoLog(pid, 2047, NULL, (char*)info);
+		if (!result)
+		{
+			MessageBox(NULL, info, "LINK", 0x00000000L);
+			ExitProcess(0);
+		}
+#endif
 	return pid;
 }
 
@@ -121,13 +120,13 @@ static void initFbTex(int fb, int tex) {
 	oglFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
 }
 
-static void paint(int prog, int src_tex, int dst_fb, const char *uni[], float time) {
+static void paint(int prog, int src_tex, int dst_fb, float time) {
 	oglUseProgram(prog);
 	glBindTexture(GL_TEXTURE_2D, src_tex);
 	oglBindFramebuffer(GL_FRAMEBUFFER, dst_fb);
-	oglUniform1f(oglGetUniformLocation(prog, uni[Uni_T]), time);
-	oglUniform2f(oglGetUniformLocation(prog, uni[Uni_V]), XRES, YRES);
-	oglUniform1i(oglGetUniformLocation(prog, uni[Uni_FB]), 0);
+	oglUniform1f(oglGetUniformLocation(prog, "T"), time);
+	oglUniform2f(oglGetUniformLocation(prog, "V"), XRES, YRES);
+	oglUniform1i(oglGetUniformLocation(prog, "FB"), 0);
 	glRects(-1, -1, 1, 1);
 }
 
@@ -169,14 +168,16 @@ void entrypoint( void )
 	waveOutWrite(hWaveOut, &WaveHDR, sizeof(WaveHDR));
 	const int to = timeGetTime();
 	
+	//glViewport(0, 0, XRES, YRES);
 	// play intro
 	do 
 	{
 		waveOutGetPosition(hWaveOut, &MMTime, sizeof(MMTIME));
 		const float time = (timeGetTime() - to) * 1e-3f;
-		paint(p_ray, 0, fb[FbTex_Ray], ray, time);
-		paint(p_dof, tex[FbTex_Ray], fb[FbTex_Dof], post, time);
-		paint(p_out, tex[FbTex_Dof], 0, out, time);
+		//paint(p_ray, 0, 0/*fb[FbTex_Ray]*/, ray, time);
+		paint(p_ray, 0, fb[FbTex_Ray], time);
+		paint(p_dof, tex[FbTex_Ray], fb[FbTex_Dof], time);
+		paint(p_out, tex[FbTex_Dof], 0, time);
 		SwapBuffers(hDC);
 	} while(!GetAsyncKeyState(VK_ESCAPE) && MMTime.u.sample < 5990000);
 
