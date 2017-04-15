@@ -130,7 +130,7 @@ static void paint(int prog, int src_tex, int dst_fb, int time) {
 	oglUseProgram(prog);
 	glBindTexture(GL_TEXTURE_2D, src_tex);
 	oglBindFramebuffer(GL_FRAMEBUFFER, dst_fb);
-	oglUniform1i(oglGetUniformLocation(prog, "tt"), time);
+	oglUniform1i(oglGetUniformLocation(prog, "Q"), time);
 	oglUniform1i(oglGetUniformLocation(prog, "FB"), 0);
 	oglUniform2f(oglGetUniformLocation(prog, "V"), XRES, YRES);
 	glRects(-1, -1, 1, 1);
@@ -140,7 +140,7 @@ static void paint(int prog, int src_tex, int dst_fb, int time) {
 enum { FbTex_Ray, FbTex_COUNT };
 
 #pragma data_seg(".entry")
-//#define FULLSCREEN
+#define FULLSCREEN
 void entrypoint( void )
 {
 	// initialize window
@@ -172,6 +172,7 @@ void entrypoint( void )
 	//initFbTex(tex[FbTex_Dof], fb[FbTex_Dof]);
 // initialize sound
 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)_4klang_render, lpSoundBuffer, 0, 0);
+	//_4klang_render(lpSoundBuffer);
 	waveOutOpen(&hWaveOut, WAVE_MAPPER, &WaveFMT, NULL, 0, CALLBACK_NULL);
 	waveOutPrepareHeader(hWaveOut, &WaveHDR, sizeof(WaveHDR));
 	waveOutWrite(hWaveOut, &WaveHDR, sizeof(WaveHDR));

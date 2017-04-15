@@ -17,8 +17,6 @@ _BSS	SEGMENT
 ?lpSoundBuffer@@3PAMA DD 0cb9f80H DUP (?)		; lpSoundBuffer
 _BSS	ENDS
 entry	SEGMENT
-$SG48333 DB	'static', 00H
-	ORG $+1
 $SG48334 DB	'glCreateShader', 00H
 	ORG $+1
 $SG48335 DB	'glShaderSource', 00H
@@ -42,8 +40,8 @@ $SG48345 DB	'glBindFramebuffer', 00H
 $SG48346 DB	'glFramebufferTexture2D', 00H
 entry	ENDS
 compileProgram	SEGMENT
-$SG48298 DB	'tt', 00H
-	ORG $+1
+$SG48298 DB	'Q', 00H
+	ORG $+2
 $SG48299 DB	'FB', 00H
 	ORG $+1
 $SG48300 DB	'V', 00H
@@ -94,85 +92,82 @@ CONST	SEGMENT
 	DD	00H
 	DD	00H
 	DD	00H
-$SG47338 DB	'uniform int tt;uniform vec2 V;float T=tt*.001;const vec3'
-	DB	' v=vec3(0.,.001,1.);const float m=3.14159;float f(float v){re'
-	DB	'turn fract(sin(v)*43758.5);}float x(vec2 v){return fract(1000'
-	DB	'0.*sin(17.*v.r+.1*v.g)*(.1+abs(sin(13.*v.g+v.r))));}float s(v'
-	DB	'ec2 m){vec2 a=floor(m);m-=a;m*=m*(3.-2.*m);return mix(mix(x(a'
-	DB	'),x(a+v.br),m.r),mix(x(a+v.rb),x(a+v.bb),m.r),m.g);}float n(f'
-	DB	'loat v){float m=floor(v);v-=m;return mix(f(m),f(m+1.),v);}flo'
-	DB	'at f(vec3 v,vec3 r){return v=abs(v)-r,max(v.r,max(v.g,v.b));}'
-	DB	'mat3 t(float v){float m=sin(v),a=cos(v);return mat3(a,0.,m,0.'
-	DB	',1.,0,-m,0.,a);}float n(vec3 v,float m){return length(v)-m;}v'
-	DB	'ec3 s(vec3 v,vec3 m){return mod(v,m)-m*.5;}float f(vec3 v,flo'
-	DB	'at m,float f,float r){float a=length(v);return max(abs(v.g)-r'
-	DB	',max(a-f,m-a));}float r(vec2 v){return max(v.r,v.g);}float e('
-	DB	'vec3 v){v=t(T*.1)*v;const float m=2.8;const int a=5;vec3 i=ve'
-	DB	'c3(1.1,.9,1.9);for(int r=0;r<a;++r){v=v*t(.1+T*.3);v=abs(v);v'
-	DB	'.rg+=step(v.r,v.g)*(v.gr-v.rg);v.rb+=step(v.r,v.b)*(v.br-v.rb'
-	DB	');v.gb+=step(v.g,v.b)*(v.bg-v.gb);v=v*t(.7);v.rg=v.rg*m-(m-1.'
-	DB	')*i.rg;v.b=m*v.b;if(v.b>.5*i.b*(m-1.))v.b-=i.b*(m-1.);}return'
-	DB	' f(v,vec3(1.))*pow(m,-float(a));}bool i=true,D_=false;int M_='
-	DB	'0;', 0aH, '#define PICK(d,dn,mn)if(D_){if(dn<d){d=dn;M_=mn;}}'
-	DB	'else d=min(d,dn);', 0aH, 'float K(vec3 v){float m=r(abs(v.rg)'
-	DB	'-vec2(2.,.1));if(D_)m=m+max(0.,.2*f(s(v,vec3(.15)),vec3(.01))'
-	DB	');v.r=abs(v.r)+.02;float a=r(abs(v.rg-vec2(2.,1.))-vec2(.02))'
-	DB	',n=max(abs(mod(v.b,.4)-.2)-.02,max(abs(v.g-.5)-.5,abs(v.r-2.)'
-	DB	'-.02));return min(m,min(a,n));}float o(vec3 v){return f(v-vec'
-	DB	'3(33.,1.6,0.),vec3(20.,1.5,1.96));}', 0aH, '#define LN 5', 0aH
-	DB	'vec3 c[LN],P[LN];float l(vec3 v){float m=100000.;if(i)for(int'
-	DB	' r=0;r<LN;++r)PICK(m,length(v-c[r])-.1,r+100);float a=length('
-	DB	'v.rb),d=atan(v.r,v.b),r=length(v),b=-min(o(vec3(abs(v.r),v.gb'
-	DB	')),o(vec3(abs(v.b),v.gr))),g=max(-n(v,19.),f(s(v,vec3(2.)),ve'
-	DB	'c3(.8))),x=-n(v,20.);PICK(m,x,1);PICK(m,g,2);m=max(b,m);float'
-	DB	' P=n(v,9.);P=max(P,abs(abs(v.g)-3.)-.5);P=min(P,f(s(v,vec3(11'
-	DB	'.8)),vec3(.1,100.,.1)));P=max(P,-n(v,8.9));float l=K(vec3(a-1'
-	DB	'3.,v.g,d*10.));l=min(l,max(15.-a,min(K(v.bgr),K(v))));l=max(l'
-	DB	',b);PICK(m,P,3);PICK(m,l,4);if(T>44.){if(r<8.){float p=mix(.0'
-	DB	'01,4.,smoothstep(44.,54.,T));PICK(m,e(v/p)*p,5);}else m=min(m'
-	DB	',r+2.);}return m;}vec3 p(vec3 m){float r=l(m);return normaliz'
-	DB	'e(vec3(l(m+v.grr)-r,l(m+v.rgr)-r,l(m+v.rrg)-r));}void K(vec3 '
-	DB	'v,out vec3 m,out vec3 r,out vec3 f,out float i,out float n){D'
-	DB	'_=true;m=p(v);r=vec3(0.,1.,1.);f=vec3(0.);i=0.;n=.99;if(M_==1'
-	DB	')r=vec3(0.),f=vec3(1.),i=.5;else if(M_==2){float b=sin(T+dot('
-	DB	'normalize(vec3(1.)),floor(v/2.)));f=max(0.,b)*vec3(1.);r=vec3'
-	DB	'(0.);i=.2;}else if(M_==3)r=vec3(0.),f=vec3(1.),i=.8;else if(M'
-	DB	'_==4)r=vec3(0.),f=vec3(.56,.57,.58),n=.8,i=.2+.6*pow(s(v.rb*4'
-	DB	'.+40.),4.);else if(M_==5)r=vec3(0.),f=vec3(1.),i=.9,n=0.;else'
-	DB	'{for(int b=0;b<LN;++b)if(M_==100+b)r=P[b],f=vec3(0.),i=0.,n=0'
-	DB	'.;}D_=false;}float K(float v,float r){r*=r;r*=r;float f=v*v*('
-	DB	'r-1.)+1.;f=m*f*f;return r/f;}float e(float v,float m){return '
-	DB	'm+=1.,m*=m/8.,v/(v*(1.-m)+m);}vec3 K(vec3 v,vec3 m,float r,fl'
-	DB	'oat b){float f=0.,a=1000.;int i;for(i=0;i<128;++i){vec3 d=v+m'
-	DB	'*f;float n=l(d);f+=n*r;a=min(a,n);if(n<.002*f||f>b)break;}ret'
-	DB	'urn vec3(f,a,float(i));}vec3 K(vec3 v,vec3 a,vec3 f,float r,v'
-	DB	'ec3 n,float b,float i){vec3 d=vec3(0.);for(int g=0;g<LN;++g){'
-	DB	'vec3 l=c[g]-v;float x=dot(l,l),o=sqrt(x);l=normalize(l);vec3 '
-	DB	's=K(v+.02*l,l,1.,o);if(s.g<.005||s.r<o)continue;vec3 p=normal'
-	DB	'ize(a+l),t=mix(vec3(.04),n,b);float L=max(dot(p,a),0.),u=max('
-	DB	'dot(f,a),0.),C=max(dot(f,l),0.),I=max(dot(f,p),0.);vec3 z=t+('
-	DB	'1.-t)*pow(1.-L,5.);float h=e(u,i)*e(C,i);vec3 N=K(I,i)*h*z/(4'
-	DB	'.*u*C+.001);d+=((vec3(1.)-z)*(1.-b)*n/m+N)*C*P[g]/x;}vec3 l=v'
-	DB	'ec3(.03)*n*r;return l+d;}mat3 K(vec3 v,vec3 m,vec3 f){vec3 a='
-	DB	'normalize(v-m),r=normalize(cross(f,a));f=cross(a,r);return ma'
-	DB	't3(r,f,a);}void main(){vec2 m=gl_FragCoord.rg/V*2.-1.;m.r*=V.'
-	DB	'r/V.g;float a=11.;c[0]=vec3(a,6.,a);c[1]=vec3(a,6.,-a);c[2]=v'
-	DB	'ec3(-a,6.,-a);c[3]=vec3(-a,6.,a);c[4]=vec3(0.);P[0]=30.*vec3('
-	DB	'.7,.35,.45)*mix(1.,n(T*20.),.3);P[1]=30.*vec3(.7,.35,.15)*mix'
-	DB	'(1.,n(T*20.+10.),.3);P[2]=30.*vec3(.3,.35,.75)*mix(1.,n(T*20.'
-	DB	'+20.),.3);P[3]=30.*vec3(.7,.35,.15)*mix(1.,n(T*20.+30.),.3);P'
-	DB	'[4]=smoothstep(44.,50.,T)*50.*vec3(1.)*mix(1.,n(T*20.+30.),.3'
-	DB	');vec3 f=normalize(vec3(m,-1.44)),r,l=vec3(0.);if(T<23.)r=vec'
-	DB	'3(mix(40.,11.,T/23.),2.,0.);else if(T<34.){float d=T-34.;r=ve'
-	DB	'c3(cos(d*.1)*13.,2.,sin(d*.1)*14.);l=vec3(20.,0.,20.);}else i'
-	DB	'f(T<62.)r=vec3(cos(T*.1)*13.,2.,sin(T*.1)*14.);else{float d=T'
-	DB	'*2./10.48,b=floor(d);r=13.*mix(vec3(n(b),n(b+4.),n(b+5.)),vec'
-	DB	'3(n(b+17.),n(b+41.),n(b+35.)),d-b);}float b=T*3.;r+=.1*vec3(n'
-	DB	'(b),n(b+1.),n(b+3.));mat3 d=K(r,l,v.rbr);r+=d*vec3(m*.01,0.);'
-	DB	'f=d*f;vec3 g=vec3(0.);const float o=40.;vec3 x=K(r,f,1.,o),s='
-	DB	'r+x.r*f,p,t,e;float L,N;K(s,e,t,p,N,L);i=false;g=t+K(s,-f,e,0'
-	DB	'.,p,L,N);gl_FragColor=vec4(g,x.r);}', 00H
-	ORG $+4
+$SG47338 DB	'uniform int Q;uniform vec2 V;float T=Q*.001;const vec3 v'
+	DB	'=vec3(0.,.001,1.);const float m=3.14159;float f(float v){retu'
+	DB	'rn fract(sin(v)*43758.5);}float x(vec2 v){return fract(sin(17'
+	DB	'.*f(v.r)+54.*f(v.g)));}float s(vec2 f){vec2 m=floor(f);f-=m;r'
+	DB	'eturn mix(mix(x(m),x(m+v.br),f.r),mix(x(m+v.rb),x(m+v.bb),f.r'
+	DB	'),f.g);}float n(float v){float m=floor(v);v-=m;return mix(f(m'
+	DB	'),f(m+1.),v);}float f(vec3 v,vec3 r){return v=abs(v)-r,max(v.'
+	DB	'r,max(v.g,v.b));}mat3 t(float v){float f=sin(v),m=cos(v);retu'
+	DB	'rn mat3(m,0.,f,0.,1.,0,-f,0.,m);}float n(vec3 v,float m){retu'
+	DB	'rn length(v)-m;}vec3 s(vec3 v,vec3 f){return mod(v,f)-f*.5;}f'
+	DB	'loat f(vec3 v,float f,float m,float r){float i=length(v);retu'
+	DB	'rn max(abs(v.g)-r,max(i-m,f-i));}float r(vec2 v){return max(v'
+	DB	'.r,v.g);}float e(vec3 v){const float m=2.8;const int i=5;vec3'
+	DB	' s=vec3(1.1,.9,1.9);for(int r=0;r<i;++r){v=v*t(.1+T*.3);v=abs'
+	DB	'(v);v.rg+=step(v.r,v.g)*(v.gr-v.rg);v.rb+=step(v.r,v.b)*(v.br'
+	DB	'-v.rb);v.gb+=step(v.g,v.b)*(v.bg-v.gb);v=v*t(.7);v.rg=v.rg*m-'
+	DB	'(m-1.)*s.rg;v.b=m*v.b;if(v.b>.5*s.b*(m-1.))v.b-=s.b*(m-1.);}r'
+	DB	'eturn f(v,vec3(1.))*pow(m,-float(i));}int I=0;', 0aH, '#defin'
+	DB	'e PICK(d,dn,mn)if(dn<d){d=dn;I=mn;}', 0aH, 'float a(vec3 v){f'
+	DB	'loat m=r(abs(v.rg)-vec2(2.,.1));m=m+max(0.,.2*f(s(v,vec3(.15)'
+	DB	'),vec3(.01)));v.r=abs(v.r)+.02;float i=r(abs(v.rg-vec2(2.,1.)'
+	DB	')-vec2(.02)),n=max(abs(mod(v.b,.4)-.2)-.02,max(abs(v.g-.5)-.5'
+	DB	',abs(v.r-2.)-.02));return min(m,min(i,n));}float d(vec3 v){re'
+	DB	'turn f(v-vec3(33.,1.6,0.),vec3(20.,1.5,1.96));}', 0aH, '#defi'
+	DB	'ne LN 5', 0aH, 'vec3 c[LN],o[LN];float K(vec3 v){float m=1000'
+	DB	'00.;for(int r=0;r<LN;++r)PICK(m,length(v-c[r])-.1,r+100);floa'
+	DB	't i=length(v.rb),r=atan(v.r,v.b),o=length(v),b=-min(d(vec3(ab'
+	DB	's(v.r),v.gb)),d(vec3(abs(v.b),v.gr))),g=max(-n(v,19.),f(s(v,v'
+	DB	'ec3(2.)),vec3(.8))),x=-n(v,20.);PICK(m,x,1);PICK(m,g,2);m=max'
+	DB	'(b,m);float P=n(v,9.);P=max(P,abs(abs(v.g)-3.)-.5);P=min(P,f('
+	DB	's(v,vec3(11.8)),vec3(.1,100.,.1)));P=max(P,-n(v,8.9));float K'
+	DB	'=a(vec3(i-13.,v.g,r*10.));K=min(K,max(15.-i,min(a(v.bgr),a(v)'
+	DB	')));K=max(K,b);PICK(m,P,3);PICK(m,K,4);if(T>44.){if(o<8.){flo'
+	DB	'at p=mix(.001,4.,smoothstep(44.,54.,T));PICK(m,e(v/p)*p,5);}e'
+	DB	'lse m=min(m,o+2.);}return m;}vec3 p(vec3 m){float r=K(m);retu'
+	DB	'rn normalize(vec3(K(m+v.grr)-r,K(m+v.rgr)-r,K(m+v.rrg)-r));}v'
+	DB	'oid K(vec3 v,out vec3 m,out vec3 f,out vec3 r,out float P,out'
+	DB	' float n){m=p(v);f=vec3(0.,1.,1.);r=vec3(0.);P=0.;n=.99;if(I='
+	DB	'=1)f=vec3(0.),r=vec3(1.),P=.5;else if(I==2){float b=sin(T+dot'
+	DB	'(normalize(vec3(1.)),floor(v/2.)));r=max(0.,b)*vec3(1.);f=vec'
+	DB	'3(0.);P=.2;}else if(I==3)f=vec3(0.),r=vec3(1.),P=.8;else if(I'
+	DB	'==4)f=vec3(0.),r=vec3(.56,.57,.58),n=.8,P=.2+.6*pow(s(v.rb*4.'
+	DB	'+40.),4.);else if(I==5)f=vec3(0.),r=vec3(1.),P=.9,n=0.;else{f'
+	DB	'or(int b=0;b<LN;++b)if(I==100+b)f=o[b],r=vec3(0.),P=0.,n=0.;}'
+	DB	'}float K(float v,float f){f*=f;f*=f;float r=v*v*(f-1.)+1.;r=m'
+	DB	'*r*r;return f/r;}float a(float v,float m){return m+=1.,m*=m/8'
+	DB	'.,v/(v*(1.-m)+m);}vec3 K(vec3 v,vec3 m,float r){float f=0.,P='
+	DB	'1000.;int i;for(i=0;i<128;++i){vec3 b=v+m*f;float n=K(b);f+=n'
+	DB	';P=min(P,n);if(n<.002*f||f>r)break;}return vec3(f,P,float(i))'
+	DB	';}vec3 K(vec3 v,vec3 f,vec3 i,float r,vec3 n,float b,float g)'
+	DB	'{vec3 P=vec3(0.);for(int e=0;e<LN;++e){vec3 d=c[e]-v;float s='
+	DB	'dot(d,d),x=sqrt(s);d=normalize(d);vec3 p=K(v+.02*d,d,x);if(p.'
+	DB	'r+.2<x)continue;vec3 l=normalize(f+d),t=mix(vec3(.04),n,b);fl'
+	DB	'oat L=max(dot(l,f),0.),u=max(dot(i,f),0.),C=max(dot(i,d),0.),'
+	DB	'I=max(dot(i,l),0.);vec3 z=t+(1.-t)*pow(1.-L,5.);float h=a(u,g'
+	DB	')*a(C,g);vec3 N=K(I,g)*h*z/(4.*u*C+.001);P+=((vec3(1.)-z)*(1.'
+	DB	'-b)*n/m+N)*C*o[e]/s;}vec3 s=vec3(.03)*n*r;return s+P;}mat3 a('
+	DB	'vec3 v,vec3 m,vec3 f){vec3 r=normalize(v-m),i=normalize(cross'
+	DB	'(f,r));f=cross(r,i);return mat3(i,f,r);}void main(){vec2 m=gl'
+	DB	'_FragCoord.rg/V*2.-1.;m.r*=V.r/V.g;float f=11.;c[0]=vec3(f,6.'
+	DB	',f);c[1]=vec3(f,6.,-f);c[2]=vec3(-f,6.,-f);c[3]=vec3(-f,6.,f)'
+	DB	';c[4]=vec3(0.);o[0]=30.*vec3(.7,.35,.45)*mix(1.,n(T*20.),.3);'
+	DB	'o[1]=30.*vec3(.7,.35,.15)*mix(1.,n(T*20.+10.),.3);o[2]=30.*ve'
+	DB	'c3(.3,.35,.75)*mix(1.,n(T*20.+20.),.3);o[3]=30.*vec3(.7,.35,.'
+	DB	'15)*mix(1.,n(T*20.+30.),.3);o[4]=smoothstep(44.,50.,T)*50.*ve'
+	DB	'c3(1.)*mix(1.,n(T*20.+30.),.3);vec3 r=normalize(vec3(m,-1.44)'
+	DB	'),i,P=vec3(0.);if(T<23.)i=vec3(mix(40.,11.,T/23.),2.,0.);else'
+	DB	' if(T<34.){float d=T-34.;i=vec3(cos(d*.1)*13.,2.,sin(d*.1)*14'
+	DB	'.);P=vec3(20.,0.,20.);}else if(T<62.)i=vec3(cos(T*.1)*13.,2.,'
+	DB	'sin(T*.1)*14.);else{float b=T*2./10.48,d=floor(b);i=13.*mix(v'
+	DB	'ec3(n(d),n(d+4.),n(d+5.)),vec3(n(d+17.),n(d+41.),n(d+35.)),b-'
+	DB	'd);}float d=T*3.;i+=.1*vec3(n(d),n(d+1.),n(d+3.));mat3 s=a(i,'
+	DB	'P,v.rbr);i+=s*vec3(m*.01,0.);r=s*r;vec3 b=vec3(0.);const floa'
+	DB	't g=40.;vec3 x=K(i,r,g),l=i+x.r*r,u,t,N;float p,e;K(l,N,t,u,e'
+	DB	',p);b=t+K(l,-r,N,0.,u,p,e);gl_FragColor=vec4(b,x.r);}', 00H
+	ORG $+5
 $SG47341 DB	'uniform sampler2D FB;uniform vec2 V;void main(){vec2 v=g'
 	DB	'l_FragCoord.rg/V,s=vec2(.002*V.g/V.r,.002),b=vec2(0.,1.1),a;v'
 	DB	'ec3 g=vec3(0.);vec4 F=texture2D(FB,v),r=vec4(F.rgb,1.),t;int '
@@ -186,6 +181,36 @@ CONST	ENDS
 _DATA	SEGMENT
 __fltused DD	01H
 ?fragment_glsl@@3PBDB DD FLAT:$SG47338			; fragment_glsl
+?screenSettings@@3U_devicemodeA@@A DB 00H		; screenSettings
+	ORG $+31
+	DW	00H
+	DW	00H
+	DW	09cH
+	DW	00H
+	DD	01c0000H
+	DW	00H
+	ORG $+14
+	DW	00H
+	DW	00H
+	DW	00H
+	DW	00H
+	DW	00H
+	DB	00H
+	ORG $+31
+	DW	00H
+	DD	020H
+	DD	0500H
+	DD	02d0H
+	DD	00H
+	DD	00H
+	DD	00H
+	DD	00H
+	DD	00H
+	DD	00H
+	DD	00H
+	DD	00H
+	DD	00H
+	DD	00H
 ?post_glsl@@3PBDB DD FLAT:$SG47341			; post_glsl
 _DATA	ENDS
 PUBLIC	?entrypoint@@YGXXZ				; entrypoint
@@ -201,6 +226,8 @@ EXTRN	__imp__PeekMessageA@20:PROC
 EXTRN	__imp__CreateWindowExA@48:PROC
 EXTRN	__imp__GetAsyncKeyState@4:PROC
 EXTRN	__imp__GetDC@4:PROC
+EXTRN	__imp__ShowCursor@4:PROC
+EXTRN	__imp__ChangeDisplaySettingsA@8:PROC
 EXTRN	__imp__waveOutOpen@24:PROC
 EXTRN	__imp__waveOutPrepareHeader@12:PROC
 EXTRN	__imp__waveOutWrite@12:PROC
@@ -249,12 +276,19 @@ _p_dof$1$ = -4						; size = 4
 ; 146  : 	// initialize window
 ; 147  : 	#ifdef FULLSCREEN
 ; 148  : 	ChangeDisplaySettings(&screenSettings,CDS_FULLSCREEN);
+
+	push	4
+	push	OFFSET ?screenSettings@@3U_devicemodeA@@A
+	call	DWORD PTR __imp__ChangeDisplaySettingsA@8
+
 ; 149  : 	ShowCursor(0);
-; 150  : 	HDC hDC = GetDC(CreateWindow((LPCSTR)0xC018, 0, WS_POPUP | WS_VISIBLE, 0, 0, XRES, YRES, 0, 0, 0, 0));
-; 151  : 	#else
-; 152  : 	HDC hDC = GetDC(CreateWindow("static", 0, WS_POPUP | WS_VISIBLE, 0, 0, XRES, YRES, 0, 0, 0, 0));
 
 	xor	ebx, ebx
+	push	ebx
+	call	DWORD PTR __imp__ShowCursor@4
+
+; 150  : 	HDC hDC = GetDC(CreateWindow((LPCSTR)0xC018, 0, WS_POPUP | WS_VISIBLE, 0, 0, XRES, YRES, 0, 0, 0, 0));
+
 	push	ebx
 	push	ebx
 	push	ebx
@@ -265,13 +299,15 @@ _p_dof$1$ = -4						; size = 4
 	push	ebx
 	push	-1879048192				; 90000000H
 	push	ebx
-	push	OFFSET $SG48333
+	push	49176					; 0000c018H
 	push	ebx
 	call	DWORD PTR __imp__CreateWindowExA@48
 	push	eax
 	call	DWORD PTR __imp__GetDC@4
 	mov	edi, eax
 
+; 151  : 	#else
+; 152  : 	HDC hDC = GetDC(CreateWindow("static", 0, WS_POPUP | WS_VISIBLE, 0, 0, XRES, YRES, 0, 0, 0, 0));
 ; 153  : 	#endif	
 ; 154  : 
 ; 155  : 	// initalize opengl
@@ -389,7 +425,8 @@ _p_dof$1$ = -4						; size = 4
 	push	ebx
 	call	DWORD PTR __imp__CreateThread@24
 
-; 175  : 	waveOutOpen(&hWaveOut, WAVE_MAPPER, &WaveFMT, NULL, 0, CALLBACK_NULL);
+; 175  : 	//_4klang_render(lpSoundBuffer);
+; 176  : 	waveOutOpen(&hWaveOut, WAVE_MAPPER, &WaveFMT, NULL, 0, CALLBACK_NULL);
 
 	push	ebx
 	push	ebx
@@ -399,7 +436,7 @@ _p_dof$1$ = -4						; size = 4
 	push	OFFSET ?hWaveOut@@3PAUHWAVEOUT__@@A
 	call	DWORD PTR __imp__waveOutOpen@24
 
-; 176  : 	waveOutPrepareHeader(hWaveOut, &WaveHDR, sizeof(WaveHDR));
+; 177  : 	waveOutPrepareHeader(hWaveOut, &WaveHDR, sizeof(WaveHDR));
 
 	push	32					; 00000020H
 	mov	esi, OFFSET ?WaveHDR@@3Uwavehdr_tag@@A
@@ -407,35 +444,35 @@ _p_dof$1$ = -4						; size = 4
 	push	DWORD PTR ?hWaveOut@@3PAUHWAVEOUT__@@A
 	call	DWORD PTR __imp__waveOutPrepareHeader@12
 
-; 177  : 	waveOutWrite(hWaveOut, &WaveHDR, sizeof(WaveHDR));
+; 178  : 	waveOutWrite(hWaveOut, &WaveHDR, sizeof(WaveHDR));
 
 	push	32					; 00000020H
 	push	esi
 	push	DWORD PTR ?hWaveOut@@3PAUHWAVEOUT__@@A
 	call	DWORD PTR __imp__waveOutWrite@12
 
-; 178  : 	const int to = timeGetTime();
+; 179  : 	const int to = timeGetTime();
 
 	mov	ebx, DWORD PTR __imp__timeGetTime@0
 	call	ebx
 	mov	DWORD PTR _to$1$[esp+32], eax
 $LL4@entrypoint:
 
-; 179  : 	
-; 180  : 	//glViewport(0, 0, XRES, YRES);
-; 181  : 	// play intro
-; 182  : 	do 
-; 183  : 	{
-; 184  : 		//waveOutGetPosition(hWaveOut, &MMTime, sizeof(MMTIME));
-; 185  : 		//const float time = (timeGetTime() - to) * 1e-3f;
-; 186  : 		const int time = timeGetTime() - to;
+; 180  : 	
+; 181  : 	//glViewport(0, 0, XRES, YRES);
+; 182  : 	// play intro
+; 183  : 	do 
+; 184  : 	{
+; 185  : 		//waveOutGetPosition(hWaveOut, &MMTime, sizeof(MMTIME));
+; 186  : 		//const float time = (timeGetTime() - to) * 1e-3f;
+; 187  : 		const int time = timeGetTime() - to;
 
 	call	ebx
 	mov	esi, eax
 	sub	esi, DWORD PTR _to$1$[esp+32]
 
-; 187  : 		//paint(p_ray, 0, 0/*fb[FbTex_Ray]*/, ray, time);
-; 188  : 		paint(p_ray, 0, fb[FbTex_Ray], time);
+; 188  : 		//paint(p_ray, 0, 0/*fb[FbTex_Ray]*/, ray, time);
+; 189  : 		paint(p_ray, 0, fb[FbTex_Ray], time);
 
 	push	esi
 	push	DWORD PTR _fb$[esp+36]
@@ -443,7 +480,7 @@ $LL4@entrypoint:
 	push	ebp
 	call	?paint@@YGXHHHH@Z			; paint
 
-; 189  : 		paint(p_dof, tex[FbTex_Ray], 0, time);
+; 190  : 		paint(p_dof, tex[FbTex_Ray], 0, time);
 
 	push	esi
 	push	0
@@ -451,19 +488,19 @@ $LL4@entrypoint:
 	push	DWORD PTR _p_dof$1$[esp+44]
 	call	?paint@@YGXHHHH@Z			; paint
 
-; 190  : 		//paint(p_dof, tex[FbTex_Ray], fb[FbTex_Dof], time);
-; 191  : 		//paint(p_out, tex[FbTex_Dof], 0, time);
-; 192  : 		SwapBuffers(hDC);
+; 191  : 		//paint(p_dof, tex[FbTex_Ray], fb[FbTex_Dof], time);
+; 192  : 		//paint(p_out, tex[FbTex_Dof], 0, time);
+; 193  : 		SwapBuffers(hDC);
 
 	push	edi
 	call	DWORD PTR __imp__SwapBuffers@4
 
-; 193  : 		if (time > 125 * 1000) break;
+; 194  : 		if (time > 125 * 1000) break;
 
 	cmp	esi, 125000				; 0001e848H
 	jg	SHORT $LN3@entrypoint
 
-; 194  : 		PeekMessageA(0, 0, 0, 0, PM_REMOVE);
+; 195  : 		PeekMessageA(0, 0, 0, 0, PM_REMOVE);
 
 	push	1
 	xor	eax, eax
@@ -473,7 +510,7 @@ $LL4@entrypoint:
 	push	eax
 	call	DWORD PTR __imp__PeekMessageA@20
 
-; 195  : 	} while (!GetAsyncKeyState(VK_ESCAPE));
+; 196  : 	} while (!GetAsyncKeyState(VK_ESCAPE));
 
 	push	27					; 0000001bH
 	call	DWORD PTR __imp__GetAsyncKeyState@4
@@ -481,15 +518,15 @@ $LL4@entrypoint:
 	je	SHORT $LL4@entrypoint
 $LN3@entrypoint:
 
-; 196  : 		// && MMTime.u.sample < 5990000);
-; 197  : 
-; 198  : 	#ifdef CLEANDESTROY
-; 199  : 	sndPlaySound(0,0);
-; 200  : 	ChangeDisplaySettings( 0, 0 );
-; 201  : 	ShowCursor(1);
-; 202  : 	#endif
-; 203  : 
-; 204  : 	ExitProcess(0);
+; 197  : 		// && MMTime.u.sample < 5990000);
+; 198  : 
+; 199  : 	#ifdef CLEANDESTROY
+; 200  : 	sndPlaySound(0,0);
+; 201  : 	ChangeDisplaySettings( 0, 0 );
+; 202  : 	ShowCursor(1);
+; 203  : 	#endif
+; 204  : 
+; 205  : 	ExitProcess(0);
 
 	push	0
 	call	DWORD PTR __imp__ExitProcess@4
@@ -533,7 +570,7 @@ _time$ = 20						; size = 4
 	push	36160					; 00008d40H
 	call	DWORD PTR ?oglBindFramebuffer@@3P6GXII@ZA
 
-; 133  : 	oglUniform1i(oglGetUniformLocation(prog, "tt"), time);
+; 133  : 	oglUniform1i(oglGetUniformLocation(prog, "Q"), time);
 
 	push	DWORD PTR _time$[ebp]
 	push	OFFSET $SG48298
