@@ -7,7 +7,7 @@ void main() {
 	vec4 pix = texture2D(FB, uv);
 	vec3 color = vec3(0.);
 
-	float focus = 15.+8.*sin(T);
+	float focus = 2.;//15.+8.*sin(T);
 	const int N = 2*128;
 	const float GA = 2.399;
 	mat2 rot = mat2(cos(GA),sin(GA),-sin(GA),cos(GA));
@@ -21,7 +21,7 @@ void main() {
 		vec2 off = pixel*(rad-1.)*angle;
 		vec4 smpl = texture2D(FB,uv+off);
 		bloom += smpl.xyz;
-		//if (smpl.w < pix.w)
+		if (smpl.w < pix.w)
 		{
 			float r = length(off);
 			float coc = abs(smpl.w - focus) * 1. / V.x;
