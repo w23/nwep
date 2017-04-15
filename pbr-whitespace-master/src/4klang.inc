@@ -4,11 +4,11 @@
 %endmacro
 %define USE_SECTIONS
 %define SAMPLE_RATE	44100
-%define MAX_INSTRUMENTS	10
+%define MAX_INSTRUMENTS	9
 %define MAX_VOICES 2
 %define HLD 1
 %define BPM 92.000000
-%define MAX_PATTERNS 57
+%define MAX_PATTERNS 58
 %define PATTERN_SIZE_SHIFT 4
 %define PATTERN_SIZE (1 << PATTERN_SIZE_SHIFT)
 %define	MAX_TICKS (MAX_PATTERNS*PATTERN_SIZE)
@@ -404,22 +404,19 @@ go4k_patterns
 	db	37, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 
 	db	0, 0, 0, 0, 60, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 60, HLD, HLD, HLD, 
 	db	HLD, HLD, HLD, HLD, 60, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 60, HLD, HLD, HLD, 
-	db	HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 60, HLD, 60, HLD, 
-	db	HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 0, 0, 0, 0, 0, 0, 0, 0, 
+	db	HLD, HLD, HLD, HLD, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 	db	48, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 48, HLD, HLD, HLD, HLD, HLD, 
-	db	48, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 
 	db	60, HLD, 60, HLD, 60, HLD, 60, HLD, 60, HLD, 60, HLD, 60, HLD, 60, HLD, 
 	db	67, HLD, 79, HLD, 74, HLD, 86, HLD, 91, HLD, 86, HLD, 79, HLD, 86, HLD, 
 	db	61, HLD, 73, HLD, 68, HLD, 80, HLD, 85, HLD, 80, HLD, 73, HLD, 80, HLD, 
 	db	61, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 
-	db	38, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 
 	db	7, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 
-	db	19, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 
 	db	67, HLD, 69, HLD, 72, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 
 	db	71, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 
 	db	74, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 
 	db	HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 72, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 
 	db	73, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 
+	db	HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 0, 0, 0, 0, 0, 0, 0, 0, 
 	db	65, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 
 	db	67, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 
 	db	12, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 
@@ -429,6 +426,7 @@ go4k_patterns
 	db	72, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 96, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 
 	db	0, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 
 	db	36, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 
+	db	48, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 
 	db	60, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 
 	db	72, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 
 	db	84, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, HLD, 
@@ -440,16 +438,15 @@ section .g4kmuc2 data align=1
 section .data
 %endif
 go4k_pattern_lists
-Instrument0List		db	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 3, 1, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 1, 2, 2, 2, 1, 2, 2, 2, 4, 2, 2, 2, 0, 0, 0, 0, 0, 
-Instrument3List		db	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 6, 6, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 2, 2, 2, 2, 8, 
-Instrument4List		db	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 9, 10, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 8, 
-Instrument5List		db	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 8, 
-Instrument6List		db	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 14, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 8, 
-Instrument7List		db	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2, 4, 2, 2, 2, 1, 2, 2, 2, 0, 
-Instrument10List		db	0, 0, 0, 0, 0, 0, 0, 0, 15, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-Instrument11List		db	16, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 17, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 19, 2, 0, 20, 21, 19, 0, 22, 8, 0, 0, 23, 2, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-Instrument14List		db	25, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 26, 27, 21, 2, 26, 27, 21, 2, 28, 2, 29, 2, 28, 2, 29, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 8, 
-Instrument15List		db	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 25, 27, 31, 10, 32, 33, 34, 35, 2, 2, 2, 35, 2, 2, 2, 35, 2, 2, 2, 35, 2, 2, 2, 35, 2, 2, 2, 35, 2, 2, 2, 35, 2, 2, 2, 35, 2, 2, 2, 8, 
+Instrument0List		db	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 3, 1, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 1, 2, 2, 2, 1, 2, 2, 2, 4, 2, 2, 2, 0, 0, 0, 0, 0, 0, 
+Instrument3List		db	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 2, 2, 2, 2, 7, 0, 
+Instrument4List		db	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 0, 
+Instrument5List		db	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 7, 0, 
+Instrument6List		db	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 12, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 7, 0, 
+Instrument7List		db	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2, 4, 2, 2, 2, 1, 2, 2, 2, 0, 0, 
+Instrument11List		db	13, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 15, 2, 0, 16, 17, 15, 0, 18, 19, 0, 0, 20, 2, 21, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+Instrument14List		db	22, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 23, 24, 17, 2, 23, 24, 17, 2, 25, 2, 26, 2, 25, 2, 26, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 7, 0, 
+Instrument15List		db	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 27, 22, 24, 28, 29, 30, 31, 32, 33, 2, 2, 2, 33, 2, 2, 2, 33, 2, 2, 2, 33, 2, 2, 2, 33, 2, 2, 2, 33, 2, 2, 2, 33, 2, 2, 2, 33, 2, 2, 2, 7, 0, 
 go4k_pattern_lists_end
 %ifdef USE_SECTIONS
 section .g4kmuc3 data align=1
@@ -501,6 +498,8 @@ GO4K_BEGIN_CMDDEF(Instrument5)
 	db GO4K_VCO_ID
 	db GO4K_FOP_ID
 	db GO4K_VCF_ID
+	db GO4K_VCO_ID
+	db GO4K_FOP_ID
 	db GO4K_DLL_ID
 	db GO4K_PAN_ID
 	db GO4K_OUT_ID
@@ -537,28 +536,6 @@ GO4K_BEGIN_CMDDEF(Instrument7)
 	db GO4K_FOP_ID
 	db GO4K_DLL_ID
 	db GO4K_PAN_ID
-	db GO4K_OUT_ID
-GO4K_END_CMDDEF
-GO4K_BEGIN_CMDDEF(Instrument10)
-	db GO4K_ENV_ID
-	db GO4K_VCO_ID
-	db GO4K_FST_ID
-	db GO4K_FST_ID
-	db GO4K_FST_ID
-	db GO4K_FOP_ID
-	db GO4K_VCO_ID
-	db GO4K_VCO_ID
-	db GO4K_VCO_ID
-	db GO4K_FOP_ID
-	db GO4K_FOP_ID
-	db GO4K_VCF_ID
-	db GO4K_VCF_ID
-	db GO4K_FOP_ID
-	db GO4K_PAN_ID
-	db GO4K_DLL_ID
-	db GO4K_FOP_ID
-	db GO4K_DLL_ID
-	db GO4K_FOP_ID
 	db GO4K_OUT_ID
 GO4K_END_CMDDEF
 GO4K_BEGIN_CMDDEF(Instrument11)
@@ -660,7 +637,9 @@ GO4K_BEGIN_PARAMDEF(Instrument5)
 	GO4K_VCO	TRANSPOSE(64),DETUNE(64),PHASE(64),GATES(85),COLOR(64),SHAPE(64),GAIN(128),FLAGS(NOISE)
 	GO4K_FOP	OP(FOP_MULP)
 	GO4K_VCF	FREQUENCY(128),RESONANCE(128),VCFTYPE(HIGHPASS)
-	GO4K_DLL	PREGAIN(55),DRY(128),FEEDBACK(0),DAMP(64),FREQUENCY(0),DEPTH(0),DELAY(16),COUNT(1)
+	GO4K_VCO	TRANSPOSE(15),DETUNE(64),PHASE(63),GATES(0),COLOR(64),SHAPE(64),GAIN(128),FLAGS(SINE)
+	GO4K_FOP	OP(FOP_MULP)
+	GO4K_DLL	PREGAIN(97),DRY(128),FEEDBACK(0),DAMP(64),FREQUENCY(0),DEPTH(0),DELAY(16),COUNT(1)
 	GO4K_PAN	PANNING(64)
 	GO4K_OUT	GAIN(4), AUXSEND(4)
 GO4K_END_PARAMDEF
@@ -698,28 +677,6 @@ GO4K_BEGIN_PARAMDEF(Instrument7)
 	GO4K_PAN	PANNING(64)
 	GO4K_OUT	GAIN(128), AUXSEND(74)
 GO4K_END_PARAMDEF
-GO4K_BEGIN_PARAMDEF(Instrument10)
-	GO4K_ENV	ATTAC(96),DECAY(32),SUSTAIN(112),RELEASE(97),GAIN(58)
-	GO4K_VCO	TRANSPOSE(64),DETUNE(64),PHASE(0),GATES(85),COLOR(64),SHAPE(64),GAIN(117),FLAGS(SINE)
-	GO4K_FST	AMOUNT(112),DEST(6*MAX_WORKSPACE_SLOTS+4)
-	GO4K_FST	AMOUNT(112),DEST(7*MAX_WORKSPACE_SLOTS+5)
-	GO4K_FST	AMOUNT(40),DEST(8*MAX_WORKSPACE_SLOTS+5)
-	GO4K_FOP	OP(FOP_POP)
-	GO4K_VCO	TRANSPOSE(64),DETUNE(64),PHASE(0),GATES(85),COLOR(64),SHAPE(64),GAIN(128),FLAGS(TRISAW)
-	GO4K_VCO	TRANSPOSE(64),DETUNE(80),PHASE(80),GATES(85),COLOR(80),SHAPE(64),GAIN(128),FLAGS(TRISAW)
-	GO4K_VCO	TRANSPOSE(64),DETUNE(48),PHASE(48),GATES(85),COLOR(48),SHAPE(64),GAIN(128),FLAGS(TRISAW)
-	GO4K_FOP	OP(FOP_ADDP)
-	GO4K_FOP	OP(FOP_ADDP)
-	GO4K_VCF	FREQUENCY(48),RESONANCE(88),VCFTYPE(LOWPASS)
-	GO4K_VCF	FREQUENCY(48),RESONANCE(88),VCFTYPE(LOWPASS)
-	GO4K_FOP	OP(FOP_MULP)
-	GO4K_PAN	PANNING(64)
-	GO4K_DLL	PREGAIN(64),DRY(128),FEEDBACK(64),DAMP(64),FREQUENCY(0),DEPTH(0),DELAY(17),COUNT(1)
-	GO4K_FOP	OP(FOP_XCH)
-	GO4K_DLL	PREGAIN(64),DRY(128),FEEDBACK(64),DAMP(64),FREQUENCY(0),DEPTH(0),DELAY(17),COUNT(1)
-	GO4K_FOP	OP(FOP_XCH)
-	GO4K_OUT	GAIN(0), AUXSEND(49)
-GO4K_END_PARAMDEF
 GO4K_BEGIN_PARAMDEF(Instrument11)
 	GO4K_ENV	ATTAC(0),DECAY(0),SUSTAIN(128),RELEASE(64),GAIN(128)
 	GO4K_VCO	TRANSPOSE(40),DETUNE(64),PHASE(96),GATES(85),COLOR(64),SHAPE(64),GAIN(128),FLAGS(SINE|LFO)
@@ -749,7 +706,7 @@ GO4K_END_PARAMDEF
 GO4K_BEGIN_PARAMDEF(Instrument14)
 	GO4K_ENV	ATTAC(0),DECAY(128),SUSTAIN(128),RELEASE(64),GAIN(128)
 	GO4K_FOP	OP(FOP_LOADNOTE)
-	GO4K_FSTG	AMOUNT(124),DEST(7*go4k_instrument.size*MAX_VOICES+4*MAX_WORKSPACE_SLOTS*4+1*4+go4k_instrument.workspace)
+	GO4K_FSTG	AMOUNT(124),DEST(6*go4k_instrument.size*MAX_VOICES+4*MAX_WORKSPACE_SLOTS*4+1*4+go4k_instrument.workspace)
 	GO4K_OUT	GAIN(0), AUXSEND(0)
 GO4K_END_PARAMDEF
 GO4K_BEGIN_PARAMDEF(Instrument15)
@@ -793,7 +750,7 @@ _go4k_delay_times
 	dw 1516
 	dw 1580
 	dw 1642
-	dw 14380
+	dw 7190
 	dw 19173
 	dw 256
 %endif
