@@ -6,36 +6,36 @@ uniform vec3 M;
 const vec3 E = vec3(.0,1e-3,1.);
 const float PI = 3.14159265359;
 
-float hash(float v){return fract(sin(v)*43758.5); }
-float hash(vec2 p){return fract(1e4*sin(17.*p.x+.1*p.y)*(.1+abs(sin(13.*p.y+p.x))));}
-float hash(vec3 p){return hash(vec2(hash(p.xy), p.z));}
-float noise(vec2 p){
+float hash1(float v){return fract(sin(v)*43758.5); }
+float hash2(vec2 p){return fract(1e4*sin(17.*p.x+.1*p.y)*(.1+abs(sin(13.*p.y+p.x))));}
+float hash3(vec3 p){return hash2(vec2(hash2(p.xy), p.z));}
+float noise2(vec2 p){
 	vec2 P=floor(p);p-=P;
 	p*=p*(3.-2.*p);
-	return mix(mix(hash(P), hash(P+E.zx), p.x), mix(hash(P+E.xz), hash(P+E.zz), p.x), p.y);
+	return mix(mix(hash2(P), hash2(P+E.zx), p.x), mix(hash2(P+E.xz), hash2(P+E.zz), p.x), p.y);
 }
-float noise(vec3 p){
+float noise3(vec3 p){
 	vec3 P=floor(p);p-=P;
 	p*=p*(3.-2.*p);
 	return mix(
-		mix(mix(hash(P      ), hash(P+E.zxx), p.x), mix(hash(P+E.xzx), hash(P+E.zzx), p.x), p.y),
-		mix(mix(hash(P+E.xxz), hash(P+E.zxz), p.x), mix(hash(P+E.xzz), hash(P+E.zzz), p.x), p.y), p.z);
+		mix(mix(hash3(P      ), hash3(P+E.zxx), p.x), mix(hash3(P+E.xzx), hash3(P+E.zzx), p.x), p.y),
+		mix(mix(hash3(P+E.xxz), hash3(P+E.zxz), p.x), mix(hash3(P+E.xzz), hash3(P+E.zzz), p.x), p.y), p.z);
 }
 float noise(float p){
 	float P = floor(p); p -= P;
 	p*=p*(3.-2.*p);
-	return mix(hash(P), hash(P+1.), p);
+	return mix(hash1(P), hash1(P+1.), p);
 }
 
-float box(vec3 p, vec3 s) { p = abs(p) - s; return max(p.x, max(p.y, p.z)); }
-float box(vec2 p, vec2 s) { p = abs(p) - s; return max(p.x, p.y); }
+float box2(vec2 p, vec2 s) { p = abs(p) - s; return max(p.x, p.y); }
+float box3(vec3 p, vec3 s) { p = abs(p) - s; return max(p.x, max(p.y, p.z)); }
 mat3 RX(float a){ float s=sin(a),c=cos(a); return mat3(1.,0.,0.,0.,c,-s,0.,s,c); }
 mat3 RY(float a){	float s=sin(a),c=cos(a); return mat3(c,0.,s,0.,1.,0,-s,0.,c); }
 mat3 RZ(float a){ float s=sin(a),c=cos(a); return mat3(c,s,0.,-s,c,0.,0.,0.,1.); }
 
 float ball(vec3 p, float r) { return length(p) - r; }
-vec3 rep(vec3 p, vec3 r) { return mod(p,r) - r*.5; }
-vec2 rep(vec2 p, vec2 r) { return mod(p,r) - r*.5; }
+vec3 rep3(vec3 p, vec3 r) { return mod(p,r) - r*.5; }
+vec2 rep2(vec2 p, vec2 r) { return mod(p,r) - r*.5; }
 float ring(vec3 p, float r, float R, float t) {
 	float pr = length(p);
 	return max(abs(p.y)-t, max(pr - R, r - pr));
@@ -60,7 +60,7 @@ float F4(vec3 p) {
 			p.z -= C.z * (S - 1.);
 	}
 	//return (length(p) - 2.) * pow(S, -float(N));
-	return box(p, vec3(1.)) * pow(S, -float(N));
+	return box3(p, vec3(1.)) * pow(S, -float(N));
 }
 
 bool dlight = true, detail = false, domat = false;
@@ -71,13 +71,13 @@ int mindex = 0;
 float path(vec3 p) {
 	float flr = vmax(abs(p.xy) - vec2(2.,.1));
 	if (detail)
-		flr = flr+max(0.,.2*box(rep(p.xz,vec2(.1)), vec2(.01)));
+		flr = flr+max(0.,.2*box2(rep2(p.xz,vec2(.1)), vec2(.01)));
 	p.x = abs(p.x)+.02;
 	float rls = vmax(abs(p.xy-vec2(2.,1.)) - vec2(.02));
 	float rlst = max(abs(mod(p.z,.4)-.2)-.02, max(abs(p.y-.5)-.5, abs(p.x-2.)-.02));
 	return min(flr, min(rls, rlst));
 }
-float hole(vec3 p) { return box(p-vec3(33.,1.6,0.), vec3(20.,1.5,1.96)); }
+float hole(vec3 p) { return box3(p-vec3(33.,1.6,0.), vec3(20.,1.5,1.96)); }
 
 #define LN 5
 vec3 LP[LN], LC[LN];
@@ -106,7 +106,7 @@ float W(vec3 p) {
 	float r3 = length(p);
 
 	float holes = -min(hole(vec3(abs(p.x), p.yz)), hole(vec3(abs(p.z), p.yx)));;
-	float plates = max(-ball(p,19.), box(rep(p, vec3(2.)), vec3(.8)));
+	float plates = max(-ball(p,19.), box3(rep3(p, vec3(2.)), vec3(.8)));
 	float extwall = -ball(p,20.);
 	PICK(w, extwall, 1);
 	PICK(w, plates, 2);
@@ -114,9 +114,9 @@ float W(vec3 p) {
 
 	float rings = ball(p,9.);
 	rings = max(rings, abs(abs(p.y)-3.)-.5);
-	rings = max(rings, -box(rep(vec2(a2*4.,p.y*.2), vec2(.4)), vec2(.08)));
-	if (detail) rings -= .1*noise(floor(p*10.));
-	rings = min(rings, box(rep(p,vec3(11.8)), vec3(.1, 100., .1)));
+	rings = max(rings, -box2(rep2(vec2(a2*4.,p.y*.2), vec2(.4)), vec2(.08)));
+	if (detail) rings -= .1*noise3(floor(p*10.));
+	rings = min(rings, box3(rep3(p,vec3(11.8)), vec3(.1, 100., .1)));
 	rings = max(rings, -ball(p,8.9));
 
 	float paths = path(vec3(r2-13., p.y, a2*10.));
@@ -170,7 +170,7 @@ void material(vec3 p, out vec3 n, out vec3 em, out vec3 a, out float r, out floa
 		em = vec3(0.);
 		a = vec3(.56, .57, .58);
 		m = .8;
-		r = .2 + .6 * pow(noise(p*4.+40.),4.);
+		r = .2 + .6 * pow(noise3(p*4.+40.),4.);
 	} else if (mindex == 5) {
 		em = vec3(0.);
 		a = vec3(1.);
