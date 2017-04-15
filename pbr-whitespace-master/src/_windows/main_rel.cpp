@@ -11,7 +11,7 @@
 enum { Uni_T, Uni_V, Uni_FB, Uni_COUNT };
 
 #include "../shaders/fragment.inl"
-#include "../shaders/out.inl"
+//#include "../shaders/out.inl"
 #include "../shaders/post.inl"
 
 #include "../4klang.h"
@@ -71,7 +71,13 @@ static MMTIME MMTime =
 	TIME_SAMPLES, 0
 };
 
-#define SHADER_DEBUG
+#pragma data_seg(".glfuncs")
+#define FUNCLIST_DO(T,N) static T ogl##N;
+FUNCLIST FUNCLIST_DBG
+#undef FUNCLIST_DO
+
+#pragma data_seg(".compileProgram")
+//#define SHADER_DEBUG
 static int compileProgram(const char *fragment) {
 	const int pid = oglCreateProgram();
 	const int fsId = oglCreateShader(GL_FRAGMENT_SHADER);
@@ -120,21 +126,21 @@ static void initFbTex(int fb, int tex) {
 	oglFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
 }
 
-static void paint(int prog, int src_tex, int dst_fb, float time) {
+static void paint(int prog, int src_tex, int dst_fb, int time) {
 	oglUseProgram(prog);
 	glBindTexture(GL_TEXTURE_2D, src_tex);
 	oglBindFramebuffer(GL_FRAMEBUFFER, dst_fb);
-	oglUniform1f(oglGetUniformLocation(prog, "T"), time);
-	oglUniform2f(oglGetUniformLocation(prog, "V"), XRES, YRES);
+	oglUniform1i(oglGetUniformLocation(prog, "tt"), time);
 	oglUniform1i(oglGetUniformLocation(prog, "FB"), 0);
+	oglUniform2f(oglGetUniformLocation(prog, "V"), XRES, YRES);
 	glRects(-1, -1, 1, 1);
 }
 
-enum { FbTex_Ray = 1, FbTex_Dof, FbTex_COUNT };
+//enum { FbTex_Ray = 1, FbTex_Dof, FbTex_COUNT };
+enum { FbTex_Ray, FbTex_COUNT };
 
-
-#define FULLSCREEN
-#define SHADER_DEBUG
+#pragma data_seg(".entry")
+//#define FULLSCREEN
 void entrypoint( void )
 {
 	// initialize window
@@ -149,18 +155,21 @@ void entrypoint( void )
 	// initalize opengl
 	SetPixelFormat(hDC,ChoosePixelFormat(hDC,&pfd),&pfd);
 	wglMakeCurrent(hDC,wglCreateContext(hDC));
-	EXT_Init();
+	
+#define FUNCLIST_DO(T, N) ogl##N = (T)wglGetProcAddress("gl" # N);
+	FUNCLIST FUNCLIST_DBG
+#undef FUNCLIST_DO
 
 	const int p_ray = compileProgram(fragment_glsl);
 	const int p_dof = compileProgram(post_glsl);
-	const int p_out = compileProgram(out_glsl);
+	//const int p_out = compileProgram(out_glsl);
 
 	GLuint tex[FbTex_COUNT], fb[FbTex_COUNT];
 	glGenTextures(FbTex_COUNT, tex);
 	oglGenFramebuffers(FbTex_COUNT, fb);
 
 	initFbTex(tex[FbTex_Ray], fb[FbTex_Ray]);
-	initFbTex(tex[FbTex_Dof], fb[FbTex_Dof]);
+	//initFbTex(tex[FbTex_Dof], fb[FbTex_Dof]);
 // initialize sound
 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)_4klang_render, lpSoundBuffer, 0, 0);
 	waveOutOpen(&hWaveOut, WAVE_MAPPER, &WaveFMT, NULL, 0, CALLBACK_NULL);
@@ -172,14 +181,19 @@ void entrypoint( void )
 	// play intro
 	do 
 	{
-		waveOutGetPosition(hWaveOut, &MMTime, sizeof(MMTIME));
-		const float time = (timeGetTime() - to) * 1e-3f;
+		//waveOutGetPosition(hWaveOut, &MMTime, sizeof(MMTIME));
+		//const float time = (timeGetTime() - to) * 1e-3f;
+		const int time = timeGetTime() - to;
 		//paint(p_ray, 0, 0/*fb[FbTex_Ray]*/, ray, time);
 		paint(p_ray, 0, fb[FbTex_Ray], time);
-		paint(p_dof, tex[FbTex_Ray], fb[FbTex_Dof], time);
-		paint(p_out, tex[FbTex_Dof], 0, time);
+		paint(p_dof, tex[FbTex_Ray], 0, time);
+		//paint(p_dof, tex[FbTex_Ray], fb[FbTex_Dof], time);
+		//paint(p_out, tex[FbTex_Dof], 0, time);
 		SwapBuffers(hDC);
-	} while(!GetAsyncKeyState(VK_ESCAPE) && MMTime.u.sample < 5990000);
+		if (time > 125 * 1000) break;
+		PeekMessageA(0, 0, 0, 0, PM_REMOVE);
+	} while (!GetAsyncKeyState(VK_ESCAPE));
+		// && MMTime.u.sample < 5990000);
 
 	#ifdef CLEANDESTROY
 	sndPlaySound(0,0);

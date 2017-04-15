@@ -5,9 +5,10 @@
 # define SHADER_CODE_H_
 
 const char *fragment_glsl =
-"uniform float T;"
+"uniform int tt;"
 "uniform vec2 V;"
 "uniform vec3 M;"
+"float T = tt * .001;"
 "const vec3 v=vec3(0.,.001,1.);"
 "const float m=3.14159;"
 "float f(float v)"
@@ -277,12 +278,12 @@ const char *fragment_glsl =
 "m.r*=V.r/V.g;"
 "K();"
 "vec3 f=normalize(vec3(m,-1.44)),r,i=vec3(0.);"
-"if(T<23.)"
-"r=vec3(mix(40.,11,T/23.),2.,0.);"
+"if(T<34.)"
+"r=vec3(mix(40.,11.,T/34.),2.,0.);"
 "else"
-" if(T<34.)"
+" if(T<44.)"
 "{"
-"float a=T-34.;"
+"float a=T-44.;"
 "r=vec3(cos(a*.1)*13.,2.,sin(a*.1)*14.);"
 "i=vec3(20.,0.,20.);"
 "}"

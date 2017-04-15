@@ -1,3 +1,4 @@
+#if 0
 //--------------------------------------------------------------------------//
 // iq / rgba  .  tiny codes  .  2008                                        //
 //--------------------------------------------------------------------------//
@@ -19,11 +20,33 @@
 #define FUNCLIST_DO(T, N) T ogl##N;
 FUNCLIST FUNCLIST_DBG
 #undef FUNCLIST_DO
+
+#if 0
+static const char *gl_funcs[] = {
+#define FUNCLIST_DO(T, N) "gl" ##N,
+FUNCLIST FUNCLIST_DBG
+#undef FUNCLIST_DO
+0
+};
+
+#define FUNCLIST_DO(T,N) "gl" #N "\0"
+static const char gl_names[] =
+FUNCLIST FUNCLIST_DBG
+;
+#undef FUNCLIST_DO
+
+void EXT_Init(void) {
+	for (int i = 0; gl_funcs[i] != 0; ++i)
+
+}
+#else
 void EXT_Init(void)
 {
 #define FUNCLIST_DO(T, N) ogl##N = (T)wglGetProcAddress("gl" # N);
 	FUNCLIST FUNCLIST_DBG
 #undef FUNCLIST_DO
 }
+#endif
 
 
+#endif

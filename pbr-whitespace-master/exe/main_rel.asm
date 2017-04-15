@@ -12,11 +12,42 @@ INCLUDELIB OLDNAMES
 PUBLIC	__fltused
 PUBLIC	?lpSoundBuffer@@3PAMA				; lpSoundBuffer
 PUBLIC	?fragment_glsl@@3PBDB				; fragment_glsl
-PUBLIC	?out_glsl@@3PBDB				; out_glsl
 PUBLIC	?post_glsl@@3PBDB				; post_glsl
 _BSS	SEGMENT
 ?lpSoundBuffer@@3PAMA DD 0cb9f80H DUP (?)		; lpSoundBuffer
 _BSS	ENDS
+entry	SEGMENT
+$SG48333 DB	'static', 00H
+	ORG $+1
+$SG48334 DB	'glCreateShader', 00H
+	ORG $+1
+$SG48335 DB	'glShaderSource', 00H
+	ORG $+1
+$SG48336 DB	'glCompileShader', 00H
+$SG48337 DB	'glCreateProgram', 00H
+$SG48338 DB	'glAttachShader', 00H
+	ORG $+1
+$SG48339 DB	'glLinkProgram', 00H
+	ORG $+2
+$SG48340 DB	'glUseProgram', 00H
+	ORG $+3
+$SG48341 DB	'glGetUniformLocation', 00H
+	ORG $+3
+$SG48342 DB	'glUniform1i', 00H
+$SG48343 DB	'glUniform2f', 00H
+$SG48344 DB	'glGenFramebuffers', 00H
+	ORG $+2
+$SG48345 DB	'glBindFramebuffer', 00H
+	ORG $+2
+$SG48346 DB	'glFramebufferTexture2D', 00H
+entry	ENDS
+compileProgram	SEGMENT
+$SG48298 DB	'tt', 00H
+	ORG $+1
+$SG48299 DB	'FB', 00H
+	ORG $+1
+$SG48300 DB	'V', 00H
+compileProgram	ENDS
 wavehdr	SEGMENT
 ?WaveHDR@@3Uwavehdr_tag@@A DD FLAT:?lpSoundBuffer@@3PAMA ; WaveHDR
 	DD	032e7e00H
@@ -26,23 +57,6 @@ wavehdr	SEGMENT
 	DD	00H
 	DD	00H
 	DD	00H
-?MMTime@@3Ummtime_tag@@A DD 02H				; MMTime
-	DD	00H
-	ORG $+4
-$SG48302 DB	'glGetObjectParameterivARB', 00H
-	ORG $+2
-$SG48303 DB	'glGetInfoLogARB', 00H
-$SG48305 DB	'COMPILE', 00H
-$SG48306 DB	'glGetObjectParameterivARB', 00H
-	ORG $+2
-$SG48307 DB	'glGetInfoLogARB', 00H
-$SG48309 DB	'LINK', 00H
-	ORG $+3
-$SG48320 DB	'T', 00H
-	ORG $+2
-$SG48321 DB	'V', 00H
-	ORG $+2
-$SG48322 DB	'FB', 00H
 wavehdr	ENDS
 wavefmt	SEGMENT
 ?WaveFMT@@3UtWAVEFORMATEX@@A DW 03H			; WaveFMT
@@ -80,149 +94,112 @@ CONST	SEGMENT
 	DD	00H
 	DD	00H
 	DD	00H
-$SG47356 DB	'uniform float T;uniform vec2 V;uniform vec3 M;const vec3'
-	DB	' v=vec3(0.,.001,1.);const float m=3.14159;float f(float v){re'
-	DB	'turn fract(sin(v)*43758.5);}float x(vec2 v){return fract(1000'
-	DB	'0.*sin(17.*v.r+.1*v.g)*(.1+abs(sin(13.*v.g+v.r))));}float s(v'
-	DB	'ec3 v){return x(vec2(x(v.rg),v.b));}float n(vec2 m){vec2 f=fl'
-	DB	'oor(m);m-=f;m*=m*(3.-2.*m);return mix(mix(x(f),x(f+v.br),m.r)'
-	DB	',mix(x(f+v.rb),x(f+v.bb),m.r),m.g);}float d(vec3 m){vec3 f=fl'
-	DB	'oor(m);m-=f;m*=m*(3.-2.*m);return mix(mix(mix(s(f),s(f+v.brr)'
-	DB	',m.r),mix(s(f+v.rbr),s(f+v.bbr),m.r),m.g),mix(mix(s(f+v.rrb),'
-	DB	's(f+v.brb),m.r),mix(s(f+v.rbb),s(f+v.bbb),m.r),m.g),m.b);}flo'
-	DB	'at t(float v){float m=floor(v);v-=m;v*=v*(3.-2.*v);return mix'
-	DB	'(f(m),f(m+1.),v);}float d(vec2 v,vec2 r){return v=abs(v)-r,ma'
-	DB	'x(v.r,v.g);}float f(vec3 v,vec3 r){return v=abs(v)-r,max(v.r,'
-	DB	'max(v.g,v.b));}mat3 r(float v){float m=sin(v),r=cos(v);return'
-	DB	' mat3(1.,0.,0.,0.,r,-m,0.,m,r);}mat3 p(float v){float m=sin(v'
-	DB	'),f=cos(v);return mat3(f,0.,m,0.,1.,0,-m,0.,f);}mat3 e(float '
-	DB	'v){float m=sin(v),f=cos(v);return mat3(f,m,0.,-m,f,0.,0.,0.,1'
-	DB	'.);}float e(vec3 v,float m){return length(v)-m;}vec3 n(vec3 v'
-	DB	',vec3 m){return mod(v,m)-m*.5;}vec2 p(vec2 v,vec2 m){return m'
-	DB	'od(v,m)-m*.5;}float d(vec3 v,float m,float f,float r){float b'
-	DB	'=length(v);return max(abs(v.g)-r,max(b-f,m-b));}float i(vec2 '
-	DB	'v){return max(v.r,v.g);}float K(vec3 v){v=p(T*.1)*v;const flo'
-	DB	'at m=2.8;const int r=5;vec3 a=vec3(1.1,.9,1.9);for(int b=0;b<'
-	DB	'r;++b){v=v*p(.1+T*.3);v=abs(v);v.rg+=step(v.r,v.g)*(v.gr-v.rg'
-	DB	');v.rb+=step(v.r,v.b)*(v.br-v.rb);v.gb+=step(v.g,v.b)*(v.bg-v'
-	DB	'.gb);v=v*e(.1);v.rg=v.rg*m-(m-1.)*a.rg;v.b=m*v.b;if(v.b>.5*a.'
-	DB	'b*(m-1.))v.b-=a.b*(m-1.);}return f(v,vec3(1.))*pow(m,-float(r'
-	DB	'));}bool b=true,g=false,O_=false;int A_=0;', 0aH, '#define PI'
-	DB	'CK(d,dn,mn)if(O_){if(dn<d){d=dn;A_=mn;}}else d=min(d,dn);', 0aH
-	DB	'float c(vec3 v){float m=i(abs(v.rg)-vec2(2.,.1));if(g)m=m+max'
-	DB	'(0.,.2*d(p(v.rb,vec2(.1)),vec2(.01)));v.r=abs(v.r)+.02;float '
-	DB	'f=i(abs(v.rg-vec2(2.,1.))-vec2(.02)),r=max(abs(mod(v.b,.4)-.2'
-	DB	')-.02,max(abs(v.g-.5)-.5,abs(v.r-2.)-.02));return min(m,min(f'
-	DB	',r));}float h(vec3 v){return f(v-vec3(33.,1.6,0.),vec3(20.,1.'
-	DB	'5,1.96));}', 0aH, '#define LN 5', 0aH, 'vec3 P[LN],l[LN];void'
-	DB	' K(){float v=11.;P[0]=vec3(v,6.,v);P[1]=vec3(v,6.,-v);P[2]=ve'
-	DB	'c3(-v,6.,-v);P[3]=vec3(-v,6.,v);P[4]=vec3(0.);l[0]=30.*vec3(.'
-	DB	'7,.35,.45)*mix(1.,t(T*20.),.3);l[1]=30.*vec3(.7,.35,.15)*mix('
-	DB	'1.,t(T*20.+10.),.3);l[2]=30.*vec3(.3,.35,.75)*mix(1.,t(T*20.+'
-	DB	'20.),.3);l[3]=30.*vec3(.7,.35,.15)*mix(1.,t(T*20.+30.),.3);l['
-	DB	'4]=smoothstep(44.,50.,T)*50.*vec3(1.)*mix(1.,t(T*20.+30.),.3)'
-	DB	';}float w(vec3 v){float m=100000.;if(b)for(int r=0;r<LN;++r)P'
-	DB	'ICK(m,length(v-P[r])-.1,r+100);float r=length(v.rb),a=atan(v.'
-	DB	'r,v.b),t=length(v),s=-min(h(vec3(abs(v.r),v.gb)),h(vec3(abs(v'
-	DB	'.b),v.gr))),o=max(-e(v,19.),f(n(v,vec3(2.)),vec3(.8))),x=-e(v'
-	DB	',20.);PICK(m,x,1);PICK(m,o,2);m=max(s,m);float i=e(v,9.);i=ma'
-	DB	'x(i,abs(abs(v.g)-3.)-.5);i=max(i,-d(p(vec2(a*4.,v.g*.2),vec2('
-	DB	'.4)),vec2(.08)));if(g)i-=.1*d(floor(v*10.));i=min(i,f(n(v,vec'
-	DB	'3(11.8)),vec3(.1,100.,.1)));i=max(i,-e(v,8.9));float l=c(vec3'
-	DB	'(r-13.,v.g,a*10.));l=min(l,max(15.-r,min(c(v.bgr),c(v))));l=m'
-	DB	'ax(l,s);PICK(m,i,3);PICK(m,l,4);if(T>44.){if(t<8.){float L=mi'
-	DB	'x(.001,4.,smoothstep(44.,54.,T));PICK(m,K(v/L)*L,5);}else m=m'
-	DB	'in(m,t+2.);}return m;}vec3 L(vec3 m){float r=w(m);return norm'
-	DB	'alize(vec3(w(m+v.grr)-r,w(m+v.rgr)-r,w(m+v.rrg)-r));}void K(v'
-	DB	'ec3 v,out vec3 m,out vec3 r,out vec3 f,out float i,out float '
-	DB	'b){g=true;O_=true;m=L(v);r=vec3(0.,1.,1.);f=vec3(0.);i=0.;b=0'
-	DB	'.;if(A_==1)r=vec3(0.),f=vec3(1.),i=.5,b=.99;else if(A_==2){fl'
-	DB	'oat t=sin(T+dot(normalize(vec3(1.)),floor(v/2.)));f=max(0.,t)'
-	DB	'*vec3(1.);r=vec3(0.);i=.2;b=.99;}else if(A_==3)r=vec3(0.),f=v'
-	DB	'ec3(1.),i=.8,b=.99;else if(A_==4)r=vec3(0.),f=vec3(.56,.57,.5'
-	DB	'8),b=.8,i=.2+.6*pow(d(v*4.+40.),4.);else if(A_==5)r=vec3(0.),'
-	DB	'f=vec3(1.),i=.9,b=0.;else{for(int P=0;P<LN;++P)if(A_==100+P)r'
-	DB	'=l[P],f=vec3(0.),i=0.,b=0.;}O_=false;g=false;}float K(float v'
-	DB	',float f){f*=f;f*=f;float r=v*v*(f-1.)+1.;r=m*r*r;return f/r;'
-	DB	'}float L(float v,float m){return m+=1.,m*=m/8.,v/(v*(1.-m)+m)'
-	DB	';}vec3 K(vec3 v,vec3 m,float r,float b){float f=0.,i=1000.;in'
-	DB	't a;for(a=0;a<128;++a){vec3 g=v+m*f;float s=w(g);f+=s*r;i=min'
-	DB	'(i,s);if(s<.002*f||f>b)break;}return vec3(f,i,float(a));}vec3'
-	DB	' K(vec3 v,vec3 f,vec3 r,float i,vec3 t,float b,float g){vec3 '
-	DB	'a=vec3(0.);for(int s=0;s<LN;++s){vec3 d=P[s]-v;float e=dot(d,'
-	DB	'd),o=sqrt(e);d=normalize(d);vec3 x=K(v+.02*d,d,1.,o);if(x.g<.'
-	DB	'005||x.r<o)continue;vec3 n=normalize(f+d),c=mix(vec3(.04),t,b'
-	DB	');float p=max(dot(n,f),0.),w=max(dot(r,f),0.),h=max(dot(r,d),'
-	DB	'0.),u=max(dot(r,n),0.);vec3 C=c+(1.-c)*pow(1.-p,5.);float I=L'
-	DB	'(w,g)*L(h,g);vec3 z=K(u,g)*I*C/(4.*w*h+.001);a+=((vec3(1.)-C)'
-	DB	'*(1.-b)*t/m+z)*h*l[s]/e;}vec3 d=vec3(.03)*t*i;return d+a;}mat'
-	DB	'3 K(vec3 v,vec3 m,vec3 f){vec3 r=normalize(v-m),b=normalize(c'
-	DB	'ross(f,r));f=cross(r,b);return mat3(b,f,r);}void main(){vec2 '
-	DB	'm=gl_FragCoord.rg/V*2.-1.;m.r*=V.r/V.g;K();vec3 f=normalize(v'
-	DB	'ec3(m,-1.44)),r,i=vec3(0.);if(T<23.)r=vec3(mix(40.,11,T/23.),'
-	DB	'2.,0.);else if(T<34.){float a=T-34.;r=vec3(cos(a*.1)*13.,2.,s'
-	DB	'in(a*.1)*14.);i=vec3(20.,0.,20.);}else if(T<62.)r=vec3(cos(T*'
-	DB	'.1)*13.,2.,sin(T*.1)*14.);else{float a=T*2./10.48,g=floor(a);'
-	DB	'r=13.*mix(vec3(t(g),t(g+4.),t(g+5.)),vec3(t(g+17.),t(g+41.),t'
-	DB	'(g+35.)),a-g);}float g=T*3.;r+=.1*vec3(t(g),t(g+1.),t(g+3.));'
-	DB	'mat3 a=K(r,i,v.rbr);r+=a*vec3(m*.01,0.);f=a*f;vec3 d=vec3(0.)'
-	DB	';const float s=40.;vec3 x=K(r,f,1.,s);if(x.r<s){vec3 l=r+x.r*'
-	DB	'f,o,c,e;float n,w;K(l,e,c,o,w,n);b=false;d=c+K(l,-f,e,0.,o,n,'
-	DB	'w);}gl_FragColor=vec4(d,x.r);}', 00H
-	ORG $+1
-$SG47359 DB	'uniform sampler2D FB;uniform vec2 V;void main(){gl_FragC'
-	DB	'olor=texture2D(FB,gl_FragCoord.rg/V);}', 00H
-	ORG $+1
-$SG47362 DB	'uniform sampler2D FB;uniform vec2 V;void main(){vec2 v=g'
-	DB	'l_FragCoord.rg/V;vec4 F=texture2D(FB,v);vec3 g=vec3(0.);float'
-	DB	' s=2.;const int a=256;const float i=2.399;mat2 t=mat2(cos(i),'
-	DB	'sin(i),-sin(i),cos(i));vec3 f=vec3(0.);vec4 m=vec4(F.rgb,1.);'
-	DB	'vec2 r=vec2(.002*V.g/V.r,.002),c=vec2(0.,1.1);float p=1.;for('
-	DB	'int u=0;u<a;u++){p+=1./p;c*=t;vec2 e=r*(p-1.)*c;vec4 l=textur'
-	DB	'e2D(FB,v+e);f+=l.rgb;if(l.a<F.a){float b=length(e),o=abs(l.a-'
-	DB	's)/V.r,B=step(b,o);B=step(b*.01,B);m+=vec4(l.rgb,1.)*B;}}g+=p'
-	DB	'ow(f/float(a),vec3(2.));g+=m.rgb/m.a;g=g/(g+1.);gl_FragColor='
-	DB	'vec4(pow(g,vec3(1./2.2)),1.);}', 00H
+$SG47338 DB	'uniform int tt;uniform vec2 V;uniform vec3 M;float T = t'
+	DB	't * .001;const vec3 v=vec3(0.,.001,1.);const float m=3.14159;'
+	DB	'float f(float v){return fract(sin(v)*43758.5);}float x(vec2 v'
+	DB	'){return fract(10000.*sin(17.*v.r+.1*v.g)*(.1+abs(sin(13.*v.g'
+	DB	'+v.r))));}float s(vec3 v){return x(vec2(x(v.rg),v.b));}float '
+	DB	'n(vec2 m){vec2 f=floor(m);m-=f;m*=m*(3.-2.*m);return mix(mix('
+	DB	'x(f),x(f+v.br),m.r),mix(x(f+v.rb),x(f+v.bb),m.r),m.g);}float '
+	DB	'd(vec3 m){vec3 f=floor(m);m-=f;m*=m*(3.-2.*m);return mix(mix('
+	DB	'mix(s(f),s(f+v.brr),m.r),mix(s(f+v.rbr),s(f+v.bbr),m.r),m.g),'
+	DB	'mix(mix(s(f+v.rrb),s(f+v.brb),m.r),mix(s(f+v.rbb),s(f+v.bbb),'
+	DB	'm.r),m.g),m.b);}float t(float v){float m=floor(v);v-=m;v*=v*('
+	DB	'3.-2.*v);return mix(f(m),f(m+1.),v);}float d(vec2 v,vec2 r){r'
+	DB	'eturn v=abs(v)-r,max(v.r,v.g);}float f(vec3 v,vec3 r){return '
+	DB	'v=abs(v)-r,max(v.r,max(v.g,v.b));}mat3 r(float v){float m=sin'
+	DB	'(v),r=cos(v);return mat3(1.,0.,0.,0.,r,-m,0.,m,r);}mat3 p(flo'
+	DB	'at v){float m=sin(v),f=cos(v);return mat3(f,0.,m,0.,1.,0,-m,0'
+	DB	'.,f);}mat3 e(float v){float m=sin(v),f=cos(v);return mat3(f,m'
+	DB	',0.,-m,f,0.,0.,0.,1.);}float e(vec3 v,float m){return length('
+	DB	'v)-m;}vec3 n(vec3 v,vec3 m){return mod(v,m)-m*.5;}vec2 p(vec2'
+	DB	' v,vec2 m){return mod(v,m)-m*.5;}float d(vec3 v,float m,float'
+	DB	' f,float r){float b=length(v);return max(abs(v.g)-r,max(b-f,m'
+	DB	'-b));}float i(vec2 v){return max(v.r,v.g);}float K(vec3 v){v='
+	DB	'p(T*.1)*v;const float m=2.8;const int r=5;vec3 a=vec3(1.1,.9,'
+	DB	'1.9);for(int b=0;b<r;++b){v=v*p(.1+T*.3);v=abs(v);v.rg+=step('
+	DB	'v.r,v.g)*(v.gr-v.rg);v.rb+=step(v.r,v.b)*(v.br-v.rb);v.gb+=st'
+	DB	'ep(v.g,v.b)*(v.bg-v.gb);v=v*e(.1);v.rg=v.rg*m-(m-1.)*a.rg;v.b'
+	DB	'=m*v.b;if(v.b>.5*a.b*(m-1.))v.b-=a.b*(m-1.);}return f(v,vec3('
+	DB	'1.))*pow(m,-float(r));}bool b=true,g=false,O_=false;int A_=0;'
+	DB	0aH, '#define PICK(d,dn,mn)if(O_){if(dn<d){d=dn;A_=mn;}}else d'
+	DB	'=min(d,dn);', 0aH, 'float c(vec3 v){float m=i(abs(v.rg)-vec2('
+	DB	'2.,.1));if(g)m=m+max(0.,.2*d(p(v.rb,vec2(.1)),vec2(.01)));v.r'
+	DB	'=abs(v.r)+.02;float f=i(abs(v.rg-vec2(2.,1.))-vec2(.02)),r=ma'
+	DB	'x(abs(mod(v.b,.4)-.2)-.02,max(abs(v.g-.5)-.5,abs(v.r-2.)-.02)'
+	DB	');return min(m,min(f,r));}float h(vec3 v){return f(v-vec3(33.'
+	DB	',1.6,0.),vec3(20.,1.5,1.96));}', 0aH, '#define LN 5', 0aH, 'v'
+	DB	'ec3 P[LN],l[LN];void K(){float v=11.;P[0]=vec3(v,6.,v);P[1]=v'
+	DB	'ec3(v,6.,-v);P[2]=vec3(-v,6.,-v);P[3]=vec3(-v,6.,v);P[4]=vec3'
+	DB	'(0.);l[0]=30.*vec3(.7,.35,.45)*mix(1.,t(T*20.),.3);l[1]=30.*v'
+	DB	'ec3(.7,.35,.15)*mix(1.,t(T*20.+10.),.3);l[2]=30.*vec3(.3,.35,'
+	DB	'.75)*mix(1.,t(T*20.+20.),.3);l[3]=30.*vec3(.7,.35,.15)*mix(1.'
+	DB	',t(T*20.+30.),.3);l[4]=smoothstep(44.,50.,T)*50.*vec3(1.)*mix'
+	DB	'(1.,t(T*20.+30.),.3);}float w(vec3 v){float m=100000.;if(b)fo'
+	DB	'r(int r=0;r<LN;++r)PICK(m,length(v-P[r])-.1,r+100);float r=le'
+	DB	'ngth(v.rb),a=atan(v.r,v.b),t=length(v),s=-min(h(vec3(abs(v.r)'
+	DB	',v.gb)),h(vec3(abs(v.b),v.gr))),o=max(-e(v,19.),f(n(v,vec3(2.'
+	DB	')),vec3(.8))),x=-e(v,20.);PICK(m,x,1);PICK(m,o,2);m=max(s,m);'
+	DB	'float i=e(v,9.);i=max(i,abs(abs(v.g)-3.)-.5);i=max(i,-d(p(vec'
+	DB	'2(a*4.,v.g*.2),vec2(.4)),vec2(.08)));if(g)i-=.1*d(floor(v*10.'
+	DB	'));i=min(i,f(n(v,vec3(11.8)),vec3(.1,100.,.1)));i=max(i,-e(v,'
+	DB	'8.9));float l=c(vec3(r-13.,v.g,a*10.));l=min(l,max(15.-r,min('
+	DB	'c(v.bgr),c(v))));l=max(l,s);PICK(m,i,3);PICK(m,l,4);if(T>44.)'
+	DB	'{if(t<8.){float L=mix(.001,4.,smoothstep(44.,54.,T));PICK(m,K'
+	DB	'(v/L)*L,5);}else m=min(m,t+2.);}return m;}vec3 L(vec3 m){floa'
+	DB	't r=w(m);return normalize(vec3(w(m+v.grr)-r,w(m+v.rgr)-r,w(m+'
+	DB	'v.rrg)-r));}void K(vec3 v,out vec3 m,out vec3 r,out vec3 f,ou'
+	DB	't float i,out float b){g=true;O_=true;m=L(v);r=vec3(0.,1.,1.)'
+	DB	';f=vec3(0.);i=0.;b=0.;if(A_==1)r=vec3(0.),f=vec3(1.),i=.5,b=.'
+	DB	'99;else if(A_==2){float t=sin(T+dot(normalize(vec3(1.)),floor'
+	DB	'(v/2.)));f=max(0.,t)*vec3(1.);r=vec3(0.);i=.2;b=.99;}else if('
+	DB	'A_==3)r=vec3(0.),f=vec3(1.),i=.8,b=.99;else if(A_==4)r=vec3(0'
+	DB	'.),f=vec3(.56,.57,.58),b=.8,i=.2+.6*pow(d(v*4.+40.),4.);else '
+	DB	'if(A_==5)r=vec3(0.),f=vec3(1.),i=.9,b=0.;else{for(int P=0;P<L'
+	DB	'N;++P)if(A_==100+P)r=l[P],f=vec3(0.),i=0.,b=0.;}O_=false;g=fa'
+	DB	'lse;}float K(float v,float f){f*=f;f*=f;float r=v*v*(f-1.)+1.'
+	DB	';r=m*r*r;return f/r;}float L(float v,float m){return m+=1.,m*'
+	DB	'=m/8.,v/(v*(1.-m)+m);}vec3 K(vec3 v,vec3 m,float r,float b){f'
+	DB	'loat f=0.,i=1000.;int a;for(a=0;a<128;++a){vec3 g=v+m*f;float'
+	DB	' s=w(g);f+=s*r;i=min(i,s);if(s<.002*f||f>b)break;}return vec3'
+	DB	'(f,i,float(a));}vec3 K(vec3 v,vec3 f,vec3 r,float i,vec3 t,fl'
+	DB	'oat b,float g){vec3 a=vec3(0.);for(int s=0;s<LN;++s){vec3 d=P'
+	DB	'[s]-v;float e=dot(d,d),o=sqrt(e);d=normalize(d);vec3 x=K(v+.0'
+	DB	'2*d,d,1.,o);if(x.g<.005||x.r<o)continue;vec3 n=normalize(f+d)'
+	DB	',c=mix(vec3(.04),t,b);float p=max(dot(n,f),0.),w=max(dot(r,f)'
+	DB	',0.),h=max(dot(r,d),0.),u=max(dot(r,n),0.);vec3 C=c+(1.-c)*po'
+	DB	'w(1.-p,5.);float I=L(w,g)*L(h,g);vec3 z=K(u,g)*I*C/(4.*w*h+.0'
+	DB	'01);a+=((vec3(1.)-C)*(1.-b)*t/m+z)*h*l[s]/e;}vec3 d=vec3(.03)'
+	DB	'*t*i;return d+a;}mat3 K(vec3 v,vec3 m,vec3 f){vec3 r=normaliz'
+	DB	'e(v-m),b=normalize(cross(f,r));f=cross(r,b);return mat3(b,f,r'
+	DB	');}void main(){vec2 m=gl_FragCoord.rg/V*2.-1.;m.r*=V.r/V.g;K('
+	DB	');vec3 f=normalize(vec3(m,-1.44)),r,i=vec3(0.);if(T<34.)r=vec'
+	DB	'3(mix(40.,11.,T/34.),2.,0.);else if(T<44.){float a=T-44.;r=ve'
+	DB	'c3(cos(a*.1)*13.,2.,sin(a*.1)*14.);i=vec3(20.,0.,20.);}else i'
+	DB	'f(T<62.)r=vec3(cos(T*.1)*13.,2.,sin(T*.1)*14.);else{float a=T'
+	DB	'*2./10.48,g=floor(a);r=13.*mix(vec3(t(g),t(g+4.),t(g+5.)),vec'
+	DB	'3(t(g+17.),t(g+41.),t(g+35.)),a-g);}float g=T*3.;r+=.1*vec3(t'
+	DB	'(g),t(g+1.),t(g+3.));mat3 a=K(r,i,v.rbr);r+=a*vec3(m*.01,0.);'
+	DB	'f=a*f;vec3 d=vec3(0.);const float s=40.;vec3 x=K(r,f,1.,s);if'
+	DB	'(x.r<s){vec3 l=r+x.r*f,o,c,e;float n,w;K(l,e,c,o,w,n);b=false'
+	DB	';d=c+K(l,-f,e,0.,o,n,w);}gl_FragColor=vec4(d,x.r);}', 00H
+	ORG $+5
+$SG47341 DB	'uniform sampler2D FB;uniform vec2 V;void main(){vec2 v=g'
+	DB	'l_FragCoord.rg/V,s=vec2(.002*V.g/V.r,.002),b=vec2(0.,1.1),a;v'
+	DB	'ec3 g=vec3(0.);vec4 F=texture2D(FB,v),r=vec4(F.rgb,1.),t;int '
+	DB	'c=256;float m=4.,i=2.4,B=1.,p;mat2 l=mat2(cos(i),sin(i),-sin('
+	DB	'i),cos(i));for(int f=0;f<c;f++)B+=1./B,b*=l,a=s*(B-1.)*b,t=te'
+	DB	'xture2D(FB,v+a),g+=t.rgb,p=length(a),r+=step(t.a,F.a)*vec4(t.'
+	DB	'rgb,1.)*step(p*.01,step(p,abs(t.a-m)/V.r));g=pow(g/float(c),v'
+	DB	'ec3(2.))+r.rgb/r.a;gl_FragColor=vec4(pow(g/(g+1.),vec3(1./2.2'
+	DB	')),1.);}', 00H
 CONST	ENDS
 _DATA	SEGMENT
 __fltused DD	01H
-?fragment_glsl@@3PBDB DD FLAT:$SG47356			; fragment_glsl
-?screenSettings@@3U_devicemodeA@@A DB 00H		; screenSettings
-	ORG $+31
-	DW	00H
-	DW	00H
-	DW	09cH
-	DW	00H
-	DD	01c0000H
-	DW	00H
-	ORG $+14
-	DW	00H
-	DW	00H
-	DW	00H
-	DW	00H
-	DW	00H
-	DB	00H
-	ORG $+31
-	DW	00H
-	DD	020H
-	DD	0500H
-	DD	02d0H
-	DD	00H
-	DD	00H
-	DD	00H
-	DD	00H
-	DD	00H
-	DD	00H
-	DD	00H
-	DD	00H
-	DD	00H
-	DD	00H
-?out_glsl@@3PBDB DD FLAT:$SG47359			; out_glsl
-?post_glsl@@3PBDB DD FLAT:$SG47362			; post_glsl
+?fragment_glsl@@3PBDB DD FLAT:$SG47338			; fragment_glsl
+?post_glsl@@3PBDB DD FLAT:$SG47341			; post_glsl
 _DATA	ENDS
 PUBLIC	?entrypoint@@YGXXZ				; entrypoint
-PUBLIC	__real@3a83126f
-PUBLIC	__xmm@41f00000000000000000000000000000
 EXTRN	__imp__ExitProcess@4:PROC
 EXTRN	__imp__CreateThread@24:PROC
 EXTRN	__imp__ChoosePixelFormat@8:PROC
@@ -231,299 +208,299 @@ EXTRN	__imp__wglCreateContext@4:PROC
 EXTRN	__imp__wglGetProcAddress@4:PROC
 EXTRN	__imp__wglMakeCurrent@8:PROC
 EXTRN	__imp__SwapBuffers@4:PROC
+EXTRN	__imp__PeekMessageA@20:PROC
 EXTRN	__imp__CreateWindowExA@48:PROC
 EXTRN	__imp__GetAsyncKeyState@4:PROC
 EXTRN	__imp__GetDC@4:PROC
-EXTRN	__imp__MessageBoxA@16:PROC
-EXTRN	__imp__ShowCursor@4:PROC
-EXTRN	__imp__ChangeDisplaySettingsA@8:PROC
 EXTRN	__imp__waveOutOpen@24:PROC
 EXTRN	__imp__waveOutPrepareHeader@12:PROC
 EXTRN	__imp__waveOutWrite@12:PROC
-EXTRN	__imp__waveOutGetPosition@12:PROC
 EXTRN	__imp__timeGetTime@0:PROC
 EXTRN	__imp__glBindTexture@8:PROC
 EXTRN	__imp__glGenTextures@8:PROC
 EXTRN	__imp__glRects@16:PROC
 EXTRN	__imp__glTexImage2D@36:PROC
 EXTRN	__imp__glTexParameteri@12:PROC
-EXTRN	?EXT_Init@@YGXXZ:PROC				; EXT_Init
 EXTRN	__4klang_render@4:PROC
-EXTRN	?oglCreateShader@@3P6GII@ZA:DWORD		; oglCreateShader
-EXTRN	?oglShaderSource@@3P6GXIHPAPBDPBH@ZA:DWORD	; oglShaderSource
-EXTRN	?oglCompileShader@@3P6GXI@ZA:DWORD		; oglCompileShader
-EXTRN	?oglCreateProgram@@3P6GIXZA:DWORD		; oglCreateProgram
-EXTRN	?oglAttachShader@@3P6GXII@ZA:DWORD		; oglAttachShader
-EXTRN	?oglLinkProgram@@3P6GXI@ZA:DWORD		; oglLinkProgram
-EXTRN	?oglUseProgram@@3P6GXI@ZA:DWORD			; oglUseProgram
-EXTRN	?oglGetUniformLocation@@3P6GHIPBD@ZA:DWORD	; oglGetUniformLocation
-EXTRN	?oglUniform1i@@3P6GXHH@ZA:DWORD			; oglUniform1i
-EXTRN	?oglUniform1f@@3P6GXHM@ZA:DWORD			; oglUniform1f
-EXTRN	?oglUniform2f@@3P6GXHMM@ZA:DWORD		; oglUniform2f
-EXTRN	?oglGenFramebuffers@@3P6GXHPAI@ZA:DWORD		; oglGenFramebuffers
-EXTRN	?oglBindFramebuffer@@3P6GXII@ZA:DWORD		; oglBindFramebuffer
-EXTRN	?oglFramebufferTexture2D@@3P6GXIIIIH@ZA:DWORD	; oglFramebufferTexture2D
 EXTRN	__fltused:DWORD
 _BSS	SEGMENT
 ?hWaveOut@@3PAUHWAVEOUT__@@A DD 01H DUP (?)		; hWaveOut
+?oglCreateShader@@3P6GII@ZA DD 01H DUP (?)		; oglCreateShader
+?oglShaderSource@@3P6GXIHPAPBDPBH@ZA DD 01H DUP (?)	; oglShaderSource
+?oglCompileShader@@3P6GXI@ZA DD 01H DUP (?)		; oglCompileShader
+?oglCreateProgram@@3P6GIXZA DD 01H DUP (?)		; oglCreateProgram
+?oglAttachShader@@3P6GXII@ZA DD 01H DUP (?)		; oglAttachShader
+?oglLinkProgram@@3P6GXI@ZA DD 01H DUP (?)		; oglLinkProgram
+?oglUseProgram@@3P6GXI@ZA DD 01H DUP (?)		; oglUseProgram
+?oglGetUniformLocation@@3P6GHIPBD@ZA DD 01H DUP (?)	; oglGetUniformLocation
+?oglUniform1i@@3P6GXHH@ZA DD 01H DUP (?)		; oglUniform1i
+?oglUniform2f@@3P6GXHMM@ZA DD 01H DUP (?)		; oglUniform2f
+?oglGenFramebuffers@@3P6GXHPAI@ZA DD 01H DUP (?)	; oglGenFramebuffers
+?oglBindFramebuffer@@3P6GXII@ZA DD 01H DUP (?)		; oglBindFramebuffer
+?oglFramebufferTexture2D@@3P6GXIIIIH@ZA DD 01H DUP (?)	; oglFramebufferTexture2D
 _BSS	ENDS
-;	COMDAT __xmm@41f00000000000000000000000000000
-CONST	SEGMENT
-__xmm@41f00000000000000000000000000000 DB 00H, 00H, 00H, 00H, 00H, 00H, 00H
-	DB	00H, 00H, 00H, 00H, 00H, 00H, 00H, 0f0H, 'A'
-CONST	ENDS
-;	COMDAT __real@3a83126f
-CONST	SEGMENT
-__real@3a83126f DD 03a83126fr			; 0.001
-CONST	ENDS
 ; Function compile flags: /Ogspy
 ; File c:\users\w23\revision2017_4k\pbr-whitespace-master\src\_windows\main_rel.cpp
 ;	COMDAT ?entrypoint@@YGXXZ
 fltused	SEGMENT
-_time$1$ = -36						; size = 4
-_to$1$ = -32						; size = 4
-_p_out$1$ = -28						; size = 4
-_fb$ = -24						; size = 12
-_tex$ = -12						; size = 12
+_fb$ = -16						; size = 4
+_tex$ = -12						; size = 4
+_to$1$ = -8						; size = 4
+_p_dof$1$ = -4						; size = 4
 ?entrypoint@@YGXXZ PROC					; entrypoint, COMDAT
 
-; 139  : {
+; 145  : {
 
-	sub	esp, 36					; 00000024H
+	sub	esp, 16					; 00000010H
 	push	ebx
 	push	ebp
 	push	esi
 	push	edi
 
-; 140  : 	// initialize window
-; 141  : 	#ifdef FULLSCREEN
-; 142  : 	ChangeDisplaySettings(&screenSettings,CDS_FULLSCREEN);
+; 146  : 	// initialize window
+; 147  : 	#ifdef FULLSCREEN
+; 148  : 	ChangeDisplaySettings(&screenSettings,CDS_FULLSCREEN);
+; 149  : 	ShowCursor(0);
+; 150  : 	HDC hDC = GetDC(CreateWindow((LPCSTR)0xC018, 0, WS_POPUP | WS_VISIBLE, 0, 0, XRES, YRES, 0, 0, 0, 0));
+; 151  : 	#else
+; 152  : 	HDC hDC = GetDC(CreateWindow("static", 0, WS_POPUP | WS_VISIBLE, 0, 0, XRES, YRES, 0, 0, 0, 0));
 
-	push	4
-	push	OFFSET ?screenSettings@@3U_devicemodeA@@A
-	call	DWORD PTR __imp__ChangeDisplaySettingsA@8
-
-; 143  : 	ShowCursor(0);
-
-	xor	edi, edi
-	push	edi
-	call	DWORD PTR __imp__ShowCursor@4
-
-; 144  : 	HDC hDC = GetDC(CreateWindow((LPCSTR)0xC018, 0, WS_POPUP | WS_VISIBLE, 0, 0, XRES, YRES, 0, 0, 0, 0));
-
-	push	edi
-	push	edi
-	push	edi
-	push	edi
+	xor	ebx, ebx
+	push	ebx
+	push	ebx
+	push	ebx
+	push	ebx
 	push	720					; 000002d0H
 	push	1280					; 00000500H
-	push	edi
-	push	edi
+	push	ebx
+	push	ebx
 	push	-1879048192				; 90000000H
-	push	edi
-	push	49176					; 0000c018H
-	push	edi
+	push	ebx
+	push	OFFSET $SG48333
+	push	ebx
 	call	DWORD PTR __imp__CreateWindowExA@48
 	push	eax
 	call	DWORD PTR __imp__GetDC@4
-	mov	esi, eax
+	mov	edi, eax
 
-; 145  : 	#else
-; 146  : 	HDC hDC = GetDC(CreateWindow("static", 0, WS_POPUP | WS_VISIBLE, 0, 0, XRES, YRES, 0, 0, 0, 0));
-; 147  : 	#endif	
-; 148  : 
-; 149  : 	// initalize opengl
-; 150  : 	SetPixelFormat(hDC,ChoosePixelFormat(hDC,&pfd),&pfd);
+; 153  : 	#endif	
+; 154  : 
+; 155  : 	// initalize opengl
+; 156  : 	SetPixelFormat(hDC,ChoosePixelFormat(hDC,&pfd),&pfd);
 
 	mov	eax, OFFSET ?pfd@@3UtagPIXELFORMATDESCRIPTOR@@B
 	push	eax
 	push	eax
-	push	esi
+	push	edi
 	call	DWORD PTR __imp__ChoosePixelFormat@8
 	push	eax
-	push	esi
+	push	edi
 	call	DWORD PTR __imp__SetPixelFormat@12
 
-; 151  : 	wglMakeCurrent(hDC,wglCreateContext(hDC));
+; 157  : 	wglMakeCurrent(hDC,wglCreateContext(hDC));
 
-	push	esi
+	push	edi
 	call	DWORD PTR __imp__wglCreateContext@4
 	push	eax
-	push	esi
+	push	edi
 	call	DWORD PTR __imp__wglMakeCurrent@8
 
-; 152  : 	EXT_Init();
+; 158  : 	
+; 159  : #define FUNCLIST_DO(T, N) ogl##N = (T)wglGetProcAddress("gl" # N);
+; 160  : 	FUNCLIST FUNCLIST_DBG
 
-	call	?EXT_Init@@YGXXZ			; EXT_Init
+	mov	esi, DWORD PTR __imp__wglGetProcAddress@4
+	push	OFFSET $SG48334
+	call	esi
+	push	OFFSET $SG48335
+	mov	DWORD PTR ?oglCreateShader@@3P6GII@ZA, eax
+	call	esi
+	push	OFFSET $SG48336
+	mov	DWORD PTR ?oglShaderSource@@3P6GXIHPAPBDPBH@ZA, eax
+	call	esi
+	push	OFFSET $SG48337
+	mov	DWORD PTR ?oglCompileShader@@3P6GXI@ZA, eax
+	call	esi
+	push	OFFSET $SG48338
+	mov	DWORD PTR ?oglCreateProgram@@3P6GIXZA, eax
+	call	esi
+	push	OFFSET $SG48339
+	mov	DWORD PTR ?oglAttachShader@@3P6GXII@ZA, eax
+	call	esi
+	push	OFFSET $SG48340
+	mov	DWORD PTR ?oglLinkProgram@@3P6GXI@ZA, eax
+	call	esi
+	push	OFFSET $SG48341
+	mov	DWORD PTR ?oglUseProgram@@3P6GXI@ZA, eax
+	call	esi
+	push	OFFSET $SG48342
+	mov	DWORD PTR ?oglGetUniformLocation@@3P6GHIPBD@ZA, eax
+	call	esi
+	push	OFFSET $SG48343
+	mov	DWORD PTR ?oglUniform1i@@3P6GXHH@ZA, eax
+	call	esi
+	push	OFFSET $SG48344
+	mov	DWORD PTR ?oglUniform2f@@3P6GXHMM@ZA, eax
+	call	esi
+	push	OFFSET $SG48345
+	mov	DWORD PTR ?oglGenFramebuffers@@3P6GXHPAI@ZA, eax
+	call	esi
+	push	OFFSET $SG48346
+	mov	DWORD PTR ?oglBindFramebuffer@@3P6GXII@ZA, eax
+	call	esi
 
-; 153  : 
-; 154  : 	const int p_ray = compileProgram(fragment_glsl);
+; 161  : #undef FUNCLIST_DO
+; 162  : 
+; 163  : 	const int p_ray = compileProgram(fragment_glsl);
 
 	push	DWORD PTR ?fragment_glsl@@3PBDB		; fragment_glsl
+	mov	DWORD PTR ?oglFramebufferTexture2D@@3P6GXIIIIH@ZA, eax
 	call	?compileProgram@@YGHPBD@Z		; compileProgram
 
-; 155  : 	const int p_dof = compileProgram(post_glsl);
+; 164  : 	const int p_dof = compileProgram(post_glsl);
 
 	push	DWORD PTR ?post_glsl@@3PBDB		; post_glsl
-	mov	ebx, eax
-	call	?compileProgram@@YGHPBD@Z		; compileProgram
-
-; 156  : 	const int p_out = compileProgram(out_glsl);
-
-	push	DWORD PTR ?out_glsl@@3PBDB		; out_glsl
 	mov	ebp, eax
 	call	?compileProgram@@YGHPBD@Z		; compileProgram
-	mov	DWORD PTR _p_out$1$[esp+52], eax
+	mov	DWORD PTR _p_dof$1$[esp+32], eax
 
-; 157  : 
-; 158  : 	GLuint tex[FbTex_COUNT], fb[FbTex_COUNT];
-; 159  : 	glGenTextures(FbTex_COUNT, tex);
+; 165  : 	//const int p_out = compileProgram(out_glsl);
+; 166  : 
+; 167  : 	GLuint tex[FbTex_COUNT], fb[FbTex_COUNT];
+; 168  : 	glGenTextures(FbTex_COUNT, tex);
 
-	lea	eax, DWORD PTR _tex$[esp+52]
+	lea	eax, DWORD PTR _tex$[esp+32]
 	push	eax
-	push	3
+	push	1
 	call	DWORD PTR __imp__glGenTextures@8
 
-; 160  : 	oglGenFramebuffers(FbTex_COUNT, fb);
+; 169  : 	oglGenFramebuffers(FbTex_COUNT, fb);
 
-	lea	eax, DWORD PTR _fb$[esp+52]
+	lea	eax, DWORD PTR _fb$[esp+32]
 	push	eax
-	push	3
-	call	DWORD PTR ?oglGenFramebuffers@@3P6GXHPAI@ZA ; oglGenFramebuffers
+	push	1
+	call	DWORD PTR ?oglGenFramebuffers@@3P6GXHPAI@ZA
 
-; 161  : 
-; 162  : 	initFbTex(tex[FbTex_Ray], fb[FbTex_Ray]);
+; 170  : 
+; 171  : 	initFbTex(tex[FbTex_Ray], fb[FbTex_Ray]);
 
-	push	DWORD PTR _fb$[esp+56]
-	push	DWORD PTR _tex$[esp+60]
+	push	DWORD PTR _fb$[esp+32]
+	push	DWORD PTR _tex$[esp+36]
 	call	?initFbTex@@YGXHH@Z			; initFbTex
 
-; 163  : 	initFbTex(tex[FbTex_Dof], fb[FbTex_Dof]);
+; 172  : 	//initFbTex(tex[FbTex_Dof], fb[FbTex_Dof]);
+; 173  : // initialize sound
+; 174  : 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)_4klang_render, lpSoundBuffer, 0, 0);
 
-	push	DWORD PTR _fb$[esp+60]
-	push	DWORD PTR _tex$[esp+64]
-	call	?initFbTex@@YGXHH@Z			; initFbTex
-
-; 164  : // initialize sound
-; 165  : 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)_4klang_render, lpSoundBuffer, 0, 0);
-
-	push	edi
-	push	edi
+	push	ebx
+	push	ebx
 	push	OFFSET ?lpSoundBuffer@@3PAMA		; lpSoundBuffer
 	push	OFFSET __4klang_render@4
-	push	edi
-	push	edi
+	push	ebx
+	push	ebx
 	call	DWORD PTR __imp__CreateThread@24
 
-; 166  : 	waveOutOpen(&hWaveOut, WAVE_MAPPER, &WaveFMT, NULL, 0, CALLBACK_NULL);
+; 175  : 	waveOutOpen(&hWaveOut, WAVE_MAPPER, &WaveFMT, NULL, 0, CALLBACK_NULL);
 
-	push	edi
-	push	edi
-	push	edi
+	push	ebx
+	push	ebx
+	push	ebx
 	push	OFFSET ?WaveFMT@@3UtWAVEFORMATEX@@A
 	push	-1
 	push	OFFSET ?hWaveOut@@3PAUHWAVEOUT__@@A
 	call	DWORD PTR __imp__waveOutOpen@24
 
-; 167  : 	waveOutPrepareHeader(hWaveOut, &WaveHDR, sizeof(WaveHDR));
+; 176  : 	waveOutPrepareHeader(hWaveOut, &WaveHDR, sizeof(WaveHDR));
 
 	push	32					; 00000020H
-	mov	edi, OFFSET ?WaveHDR@@3Uwavehdr_tag@@A
-	push	edi
+	mov	esi, OFFSET ?WaveHDR@@3Uwavehdr_tag@@A
+	push	esi
 	push	DWORD PTR ?hWaveOut@@3PAUHWAVEOUT__@@A
 	call	DWORD PTR __imp__waveOutPrepareHeader@12
 
-; 168  : 	waveOutWrite(hWaveOut, &WaveHDR, sizeof(WaveHDR));
+; 177  : 	waveOutWrite(hWaveOut, &WaveHDR, sizeof(WaveHDR));
 
 	push	32					; 00000020H
-	push	edi
+	push	esi
 	push	DWORD PTR ?hWaveOut@@3PAUHWAVEOUT__@@A
 	call	DWORD PTR __imp__waveOutWrite@12
 
-; 169  : 	const int to = timeGetTime();
+; 178  : 	const int to = timeGetTime();
 
-	mov	edi, DWORD PTR __imp__timeGetTime@0
-	call	edi
-	mov	DWORD PTR _to$1$[esp+52], eax
+	mov	ebx, DWORD PTR __imp__timeGetTime@0
+	call	ebx
+	mov	DWORD PTR _to$1$[esp+32], eax
 $LL4@entrypoint:
 
-; 170  : 	
-; 171  : 	//glViewport(0, 0, XRES, YRES);
-; 172  : 	// play intro
-; 173  : 	do 
-; 174  : 	{
-; 175  : 		waveOutGetPosition(hWaveOut, &MMTime, sizeof(MMTIME));
+; 179  : 	
+; 180  : 	//glViewport(0, 0, XRES, YRES);
+; 181  : 	// play intro
+; 182  : 	do 
+; 183  : 	{
+; 184  : 		//waveOutGetPosition(hWaveOut, &MMTime, sizeof(MMTIME));
+; 185  : 		//const float time = (timeGetTime() - to) * 1e-3f;
+; 186  : 		const int time = timeGetTime() - to;
 
-	push	12					; 0000000cH
-	push	OFFSET ?MMTime@@3Ummtime_tag@@A
-	push	DWORD PTR ?hWaveOut@@3PAUHWAVEOUT__@@A
-	call	DWORD PTR __imp__waveOutGetPosition@12
+	call	ebx
+	mov	esi, eax
+	sub	esi, DWORD PTR _to$1$[esp+32]
 
-; 176  : 		const float time = (timeGetTime() - to) * 1e-3f;
-
-	call	edi
-	sub	eax, DWORD PTR _to$1$[esp+52]
-
-; 177  : 		//paint(p_ray, 0, 0/*fb[FbTex_Ray]*/, ray, time);
-; 178  : 		paint(p_ray, 0, fb[FbTex_Ray], time);
-
-	push	ecx
-	movd	xmm0, eax
-	cvtdq2pd xmm0, xmm0
-	shr	eax, 31					; 0000001fH
-	addsd	xmm0, QWORD PTR __xmm@41f00000000000000000000000000000[eax*8]
-	cvtpd2ps xmm0, xmm0
-	mulss	xmm0, DWORD PTR __real@3a83126f
-	movss	DWORD PTR [esp], xmm0
-	push	DWORD PTR _fb$[esp+60]
-	movss	DWORD PTR _time$1$[esp+60], xmm0
-	push	0
-	push	ebx
-	call	?paint@@YGXHHHM@Z			; paint
-
-; 179  : 		paint(p_dof, tex[FbTex_Ray], fb[FbTex_Dof], time);
-
-	movss	xmm0, DWORD PTR _time$1$[esp+52]
-	push	ecx
-	movss	DWORD PTR [esp], xmm0
-	push	DWORD PTR _fb$[esp+64]
-	push	DWORD PTR _tex$[esp+64]
-	push	ebp
-	call	?paint@@YGXHHHM@Z			; paint
-
-; 180  : 		paint(p_out, tex[FbTex_Dof], 0, time);
-
-	movss	xmm0, DWORD PTR _time$1$[esp+52]
-	push	ecx
-	movss	DWORD PTR [esp], xmm0
-	push	0
-	push	DWORD PTR _tex$[esp+68]
-	push	DWORD PTR _p_out$1$[esp+64]
-	call	?paint@@YGXHHHM@Z			; paint
-
-; 181  : 		SwapBuffers(hDC);
+; 187  : 		//paint(p_ray, 0, 0/*fb[FbTex_Ray]*/, ray, time);
+; 188  : 		paint(p_ray, 0, fb[FbTex_Ray], time);
 
 	push	esi
+	push	DWORD PTR _fb$[esp+36]
+	push	0
+	push	ebp
+	call	?paint@@YGXHHHH@Z			; paint
+
+; 189  : 		paint(p_dof, tex[FbTex_Ray], 0, time);
+
+	push	esi
+	push	0
+	push	DWORD PTR _tex$[esp+40]
+	push	DWORD PTR _p_dof$1$[esp+44]
+	call	?paint@@YGXHHHH@Z			; paint
+
+; 190  : 		//paint(p_dof, tex[FbTex_Ray], fb[FbTex_Dof], time);
+; 191  : 		//paint(p_out, tex[FbTex_Dof], 0, time);
+; 192  : 		SwapBuffers(hDC);
+
+	push	edi
 	call	DWORD PTR __imp__SwapBuffers@4
 
-; 182  : 	} while(!GetAsyncKeyState(VK_ESCAPE) && MMTime.u.sample < 5990000);
+; 193  : 		if (time > 125 * 1000) break;
+
+	cmp	esi, 125000				; 0001e848H
+	jg	SHORT $LN3@entrypoint
+
+; 194  : 		PeekMessageA(0, 0, 0, 0, PM_REMOVE);
+
+	push	1
+	xor	eax, eax
+	push	eax
+	push	eax
+	push	eax
+	push	eax
+	call	DWORD PTR __imp__PeekMessageA@20
+
+; 195  : 	} while (!GetAsyncKeyState(VK_ESCAPE));
 
 	push	27					; 0000001bH
 	call	DWORD PTR __imp__GetAsyncKeyState@4
 	test	ax, ax
-	jne	SHORT $LN5@entrypoint
-	cmp	DWORD PTR ?MMTime@@3Ummtime_tag@@A+4, 5990000 ; 005b6670H
-	jb	$LL4@entrypoint
-$LN5@entrypoint:
+	je	SHORT $LL4@entrypoint
+$LN3@entrypoint:
 
-; 183  : 
-; 184  : 	#ifdef CLEANDESTROY
-; 185  : 	sndPlaySound(0,0);
-; 186  : 	ChangeDisplaySettings( 0, 0 );
-; 187  : 	ShowCursor(1);
-; 188  : 	#endif
-; 189  : 
-; 190  : 	ExitProcess(0);
+; 196  : 		// && MMTime.u.sample < 5990000);
+; 197  : 
+; 198  : 	#ifdef CLEANDESTROY
+; 199  : 	sndPlaySound(0,0);
+; 200  : 	ChangeDisplaySettings( 0, 0 );
+; 201  : 	ShowCursor(1);
+; 202  : 	#endif
+; 203  : 
+; 204  : 	ExitProcess(0);
 
 	push	0
 	call	DWORD PTR __imp__ExitProcess@4
@@ -531,75 +508,73 @@ $LN5@entrypoint:
 	pop	esi
 	pop	ebp
 	pop	ebx
+$LN12@entrypoint:
 $LN11@entrypoint:
-$LN10@entrypoint:
 ?entrypoint@@YGXXZ ENDP					; entrypoint
 fltused	ENDS
 ; Function compile flags: /Ogspy
 ; File c:\users\w23\revision2017_4k\pbr-whitespace-master\src\_windows\main_rel.cpp
-;	COMDAT ?paint@@YGXHHHM@Z
+;	COMDAT ?paint@@YGXHHHH@Z
 fltused	SEGMENT
 _prog$ = 8						; size = 4
 _src_tex$ = 12						; size = 4
 _dst_fb$ = 16						; size = 4
 _time$ = 20						; size = 4
-?paint@@YGXHHHM@Z PROC					; paint, COMDAT
+?paint@@YGXHHHH@Z PROC					; paint, COMDAT
 
-; 123  : static void paint(int prog, int src_tex, int dst_fb, float time) {
+; 129  : static void paint(int prog, int src_tex, int dst_fb, int time) {
 
 	push	ebp
 	mov	ebp, esp
 
-; 124  : 	oglUseProgram(prog);
+; 130  : 	oglUseProgram(prog);
 
 	push	DWORD PTR _prog$[ebp]
-	call	DWORD PTR ?oglUseProgram@@3P6GXI@ZA	; oglUseProgram
+	call	DWORD PTR ?oglUseProgram@@3P6GXI@ZA
 
-; 125  : 	glBindTexture(GL_TEXTURE_2D, src_tex);
+; 131  : 	glBindTexture(GL_TEXTURE_2D, src_tex);
 
 	push	DWORD PTR _src_tex$[ebp]
 	push	3553					; 00000de1H
 	call	DWORD PTR __imp__glBindTexture@8
 
-; 126  : 	oglBindFramebuffer(GL_FRAMEBUFFER, dst_fb);
+; 132  : 	oglBindFramebuffer(GL_FRAMEBUFFER, dst_fb);
 
 	push	DWORD PTR _dst_fb$[ebp]
 	push	36160					; 00008d40H
-	call	DWORD PTR ?oglBindFramebuffer@@3P6GXII@ZA ; oglBindFramebuffer
+	call	DWORD PTR ?oglBindFramebuffer@@3P6GXII@ZA
 
-; 127  : 	oglUniform1f(oglGetUniformLocation(prog, "T"), time);
+; 133  : 	oglUniform1i(oglGetUniformLocation(prog, "tt"), time);
 
-	movss	xmm0, DWORD PTR _time$[ebp]
-	push	ecx
-	movss	DWORD PTR [esp], xmm0
-	push	OFFSET $SG48320
+	push	DWORD PTR _time$[ebp]
+	push	OFFSET $SG48298
 	push	DWORD PTR _prog$[ebp]
-	call	DWORD PTR ?oglGetUniformLocation@@3P6GHIPBD@ZA ; oglGetUniformLocation
+	call	DWORD PTR ?oglGetUniformLocation@@3P6GHIPBD@ZA
 	push	eax
-	call	DWORD PTR ?oglUniform1f@@3P6GXHM@ZA	; oglUniform1f
+	call	DWORD PTR ?oglUniform1i@@3P6GXHH@ZA
 
-; 128  : 	oglUniform2f(oglGetUniformLocation(prog, "V"), XRES, YRES);
+; 134  : 	oglUniform1i(oglGetUniformLocation(prog, "FB"), 0);
+
+	push	0
+	push	OFFSET $SG48299
+	push	DWORD PTR _prog$[ebp]
+	call	DWORD PTR ?oglGetUniformLocation@@3P6GHIPBD@ZA
+	push	eax
+	call	DWORD PTR ?oglUniform1i@@3P6GXHH@ZA
+
+; 135  : 	oglUniform2f(oglGetUniformLocation(prog, "V"), XRES, YRES);
 
 	push	ecx
 	push	ecx
 	mov	DWORD PTR [esp+4], 1144258560		; 44340000H
 	mov	DWORD PTR [esp], 1151336448		; 44a00000H
-	push	OFFSET $SG48321
+	push	OFFSET $SG48300
 	push	DWORD PTR _prog$[ebp]
-	call	DWORD PTR ?oglGetUniformLocation@@3P6GHIPBD@ZA ; oglGetUniformLocation
+	call	DWORD PTR ?oglGetUniformLocation@@3P6GHIPBD@ZA
 	push	eax
-	call	DWORD PTR ?oglUniform2f@@3P6GXHMM@ZA	; oglUniform2f
+	call	DWORD PTR ?oglUniform2f@@3P6GXHMM@ZA
 
-; 129  : 	oglUniform1i(oglGetUniformLocation(prog, "FB"), 0);
-
-	push	0
-	push	OFFSET $SG48322
-	push	DWORD PTR _prog$[ebp]
-	call	DWORD PTR ?oglGetUniformLocation@@3P6GHIPBD@ZA ; oglGetUniformLocation
-	push	eax
-	call	DWORD PTR ?oglUniform1i@@3P6GXHH@ZA	; oglUniform1i
-
-; 130  : 	glRects(-1, -1, 1, 1);
+; 136  : 	glRects(-1, -1, 1, 1);
 
 	push	1
 	push	1
@@ -607,11 +582,11 @@ _time$ = 20						; size = 4
 	push	-1
 	call	DWORD PTR __imp__glRects@16
 
-; 131  : }
+; 137  : }
 
 	pop	ebp
 	ret	16					; 00000010H
-?paint@@YGXHHHM@Z ENDP					; paint
+?paint@@YGXHHHH@Z ENDP					; paint
 fltused	ENDS
 ; Function compile flags: /Ogspy
 ; File c:\users\w23\revision2017_4k\pbr-whitespace-master\src\_windows\main_rel.cpp
@@ -621,21 +596,21 @@ _fb$ = 8						; size = 4
 _tex$ = 12						; size = 4
 ?initFbTex@@YGXHH@Z PROC				; initFbTex, COMDAT
 
-; 112  : static void initFbTex(int fb, int tex) {
+; 118  : static void initFbTex(int fb, int tex) {
 
 	push	ebx
 	push	ebp
 	push	esi
 	push	edi
 
-; 113  : 	glBindTexture(GL_TEXTURE_2D, tex);
+; 119  : 	glBindTexture(GL_TEXTURE_2D, tex);
 
 	push	DWORD PTR _tex$[esp+12]
 	mov	ebp, 3553				; 00000de1H
 	push	ebp
 	call	DWORD PTR __imp__glBindTexture@8
 
-; 114  : 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, XRES, YRES, 0, GL_RGBA, GL_FLOAT, 0);
+; 120  : 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, XRES, YRES, 0, GL_RGBA, GL_FLOAT, 0);
 
 	xor	ebx, ebx
 	push	ebx
@@ -649,7 +624,7 @@ _tex$ = 12						; size = 4
 	push	ebp
 	call	DWORD PTR __imp__glTexImage2D@36
 
-; 115  : 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+; 121  : 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	mov	esi, DWORD PTR __imp__glTexParameteri@12
 	mov	edi, 9729				; 00002601H
@@ -658,14 +633,14 @@ _tex$ = 12						; size = 4
 	push	ebp
 	call	esi
 
-; 116  : 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+; 122  : 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	push	edi
 	push	10240					; 00002800H
 	push	ebp
 	call	esi
 
-; 117  : 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+; 123  : 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 
 	mov	edi, 33069				; 0000812dH
 	push	edi
@@ -673,34 +648,34 @@ _tex$ = 12						; size = 4
 	push	ebp
 	call	esi
 
-; 118  : 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+; 124  : 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
 	push	edi
 	push	10243					; 00002803H
 	push	ebp
 	call	esi
 
-; 119  : 	oglBindFramebuffer(GL_FRAMEBUFFER, fb);
+; 125  : 	oglBindFramebuffer(GL_FRAMEBUFFER, fb);
 
 	push	DWORD PTR _fb$[esp+12]
 	mov	esi, 36160				; 00008d40H
 	push	esi
-	call	DWORD PTR ?oglBindFramebuffer@@3P6GXII@ZA ; oglBindFramebuffer
+	call	DWORD PTR ?oglBindFramebuffer@@3P6GXII@ZA
 
-; 120  : 	oglFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+; 126  : 	oglFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
 
 	push	ebx
 	push	DWORD PTR _tex$[esp+16]
 	push	ebp
 	push	36064					; 00008ce0H
 	push	esi
-	call	DWORD PTR ?oglFramebufferTexture2D@@3P6GXIIIIH@ZA ; oglFramebufferTexture2D
+	call	DWORD PTR ?oglFramebufferTexture2D@@3P6GXIIIIH@ZA
 	pop	edi
 	pop	esi
 	pop	ebp
 	pop	ebx
 
-; 121  : }
+; 127  : }
 
 	ret	8
 ?initFbTex@@YGXHH@Z ENDP				; initFbTex
@@ -709,167 +684,86 @@ fltused	ENDS
 ; File c:\users\w23\revision2017_4k\pbr-whitespace-master\src\_windows\main_rel.cpp
 ;	COMDAT ?compileProgram@@YGHPBD@Z
 fltused	SEGMENT
-_result$ = -2052					; size = 4
-_info$ = -2048						; size = 2048
 _fragment$ = 8						; size = 4
 ?compileProgram@@YGHPBD@Z PROC				; compileProgram, COMDAT
 
-; 75   : static int compileProgram(const char *fragment) {
+; 81   : static int compileProgram(const char *fragment) {
 
-	sub	esp, 2052				; 00000804H
-	push	ebx
-	push	ebp
 	push	esi
 	push	edi
 
-; 76   : 	const int pid = oglCreateProgram();
+; 82   : 	const int pid = oglCreateProgram();
 
-	call	DWORD PTR ?oglCreateProgram@@3P6GIXZA	; oglCreateProgram
+	call	DWORD PTR ?oglCreateProgram@@3P6GIXZA
 
-; 77   : 	const int fsId = oglCreateShader(GL_FRAGMENT_SHADER);
+; 83   : 	const int fsId = oglCreateShader(GL_FRAGMENT_SHADER);
 
 	push	35632					; 00008b30H
-	mov	esi, eax
-	call	DWORD PTR ?oglCreateShader@@3P6GII@ZA	; oglCreateShader
 	mov	edi, eax
+	call	DWORD PTR ?oglCreateShader@@3P6GII@ZA
+	mov	esi, eax
 
-; 78   : 	oglShaderSource(fsId, 1, &fragment, 0);
+; 84   : 	oglShaderSource(fsId, 1, &fragment, 0);
 
-	xor	ebp, ebp
-	push	ebp
-	lea	eax, DWORD PTR _fragment$[esp+2068]
+	lea	eax, DWORD PTR _fragment$[esp+4]
+	push	0
 	push	eax
 	push	1
-	push	edi
-	call	DWORD PTR ?oglShaderSource@@3P6GXIHPAPBDPBH@ZA ; oglShaderSource
-
-; 79   : 	oglCompileShader(fsId);
-
-	push	edi
-	call	DWORD PTR ?oglCompileShader@@3P6GXI@ZA	; oglCompileShader
-
-; 80   : 
-; 81   : #ifdef SHADER_DEBUG
-; 82   : 	int result;
-; 83   : 	char info[2048];
-; 84   : #define oglGetObjectParameteriv ((PFNGLGETOBJECTPARAMETERIVARBPROC) wglGetProcAddress("glGetObjectParameterivARB"))
-; 85   : #define oglGetInfoLog ((PFNGLGETINFOLOGARBPROC) wglGetProcAddress("glGetInfoLogARB"))
-; 86   : 	oglGetObjectParameteriv(fsId, GL_OBJECT_COMPILE_STATUS_ARB, &result);
-
-	mov	ebx, DWORD PTR __imp__wglGetProcAddress@4
-	lea	eax, DWORD PTR _result$[esp+2068]
-	push	eax
-	push	35713					; 00008b81H
-	push	edi
-	push	OFFSET $SG48302
-	call	ebx
-	call	eax
-
-; 87   : 	oglGetInfoLog(fsId, 2047, NULL, (char*)info);
-
-	lea	eax, DWORD PTR _info$[esp+2068]
-	push	eax
-	push	ebp
-	push	2047					; 000007ffH
-	push	edi
-	push	OFFSET $SG48303
-	call	ebx
-	call	eax
-
-; 88   : 	if (!result)
-
-	cmp	DWORD PTR _result$[esp+2068], ebp
-	jne	SHORT $LN2@compilePro
-
-; 89   : 	{
-; 90   : 		MessageBox(NULL, info, "COMPILE", 0x00000000L);
-
-	push	ebp
-	push	OFFSET $SG48305
-	lea	eax, DWORD PTR _info$[esp+2076]
-$LN6@compilePro:
-	push	eax
-	push	ebp
-	call	DWORD PTR __imp__MessageBoxA@16
-
-; 91   : 		ExitProcess(0);
-
-	push	ebp
-	call	DWORD PTR __imp__ExitProcess@4
-$LN8@compilePro:
-$LN2@compilePro:
-
-; 92   : 	}
-; 93   : #endif
-; 94   : 
-; 95   : 	oglAttachShader(pid, fsId);
-
-	push	edi
 	push	esi
-	call	DWORD PTR ?oglAttachShader@@3P6GXII@ZA	; oglAttachShader
+	call	DWORD PTR ?oglShaderSource@@3P6GXIHPAPBDPBH@ZA
 
-; 96   : 	oglLinkProgram(pid);
+; 85   : 	oglCompileShader(fsId);
 
 	push	esi
-	call	DWORD PTR ?oglLinkProgram@@3P6GXI@ZA	; oglLinkProgram
+	call	DWORD PTR ?oglCompileShader@@3P6GXI@ZA
 
-; 97   : 
-; 98   : #ifdef SHADER_DEBUG
-; 99   : #define oglGetObjectParameteriv ((PFNGLGETOBJECTPARAMETERIVARBPROC) wglGetProcAddress("glGetObjectParameterivARB"))
-; 100  : #define oglGetInfoLog ((PFNGLGETINFOLOGARBPROC) wglGetProcAddress("glGetInfoLogARB"))
-; 101  : 		oglGetObjectParameteriv(pid, GL_OBJECT_LINK_STATUS_ARB, &result);
+; 86   : 
+; 87   : #ifdef SHADER_DEBUG
+; 88   : 	int result;
+; 89   : 	char info[2048];
+; 90   : #define oglGetObjectParameteriv ((PFNGLGETOBJECTPARAMETERIVARBPROC) wglGetProcAddress("glGetObjectParameterivARB"))
+; 91   : #define oglGetInfoLog ((PFNGLGETINFOLOGARBPROC) wglGetProcAddress("glGetInfoLogARB"))
+; 92   : 	oglGetObjectParameteriv(fsId, GL_OBJECT_COMPILE_STATUS_ARB, &result);
+; 93   : 	oglGetInfoLog(fsId, 2047, NULL, (char*)info);
+; 94   : 	if (!result)
+; 95   : 	{
+; 96   : 		MessageBox(NULL, info, "COMPILE", 0x00000000L);
+; 97   : 		ExitProcess(0);
+; 98   : 	}
+; 99   : #endif
+; 100  : 
+; 101  : 	oglAttachShader(pid, fsId);
 
-	lea	eax, DWORD PTR _result$[esp+2068]
-	push	eax
-	push	35714					; 00008b82H
 	push	esi
-	push	OFFSET $SG48306
-	call	ebx
-	call	eax
+	push	edi
+	call	DWORD PTR ?oglAttachShader@@3P6GXII@ZA
 
-; 102  : 		oglGetInfoLog(pid, 2047, NULL, (char*)info);
+; 102  : 	oglLinkProgram(pid);
 
-	lea	eax, DWORD PTR _info$[esp+2068]
-	push	eax
-	push	ebp
-	push	2047					; 000007ffH
-	push	esi
-	push	OFFSET $SG48307
-	call	ebx
-	call	eax
+	push	edi
+	call	DWORD PTR ?oglLinkProgram@@3P6GXI@ZA
 
-; 103  : 		if (!result)
+; 103  : 
+; 104  : #ifdef SHADER_DEBUG
+; 105  : #define oglGetObjectParameteriv ((PFNGLGETOBJECTPARAMETERIVARBPROC) wglGetProcAddress("glGetObjectParameterivARB"))
+; 106  : #define oglGetInfoLog ((PFNGLGETINFOLOGARBPROC) wglGetProcAddress("glGetInfoLogARB"))
+; 107  : 		oglGetObjectParameteriv(pid, GL_OBJECT_LINK_STATUS_ARB, &result);
+; 108  : 		oglGetInfoLog(pid, 2047, NULL, (char*)info);
+; 109  : 		if (!result)
+; 110  : 		{
+; 111  : 			MessageBox(NULL, info, "LINK", 0x00000000L);
+; 112  : 			ExitProcess(0);
+; 113  : 		}
+; 114  : #endif
+; 115  : 	return pid;
 
-	cmp	DWORD PTR _result$[esp+2068], ebp
-	jne	SHORT $LN3@compilePro
-
-; 104  : 		{
-; 105  : 			MessageBox(NULL, info, "LINK", 0x00000000L);
-
-	push	ebp
-	push	OFFSET $SG48309
-	lea	eax, DWORD PTR _info$[esp+2076]
-
-; 106  : 			ExitProcess(0);
-
-	jmp	SHORT $LN6@compilePro
-$LN3@compilePro:
+	mov	eax, edi
 	pop	edi
-
-; 107  : 		}
-; 108  : #endif
-; 109  : 	return pid;
-
-	mov	eax, esi
 	pop	esi
-	pop	ebp
-	pop	ebx
 
-; 110  : }
+; 116  : }
 
-	add	esp, 2052				; 00000804H
 	ret	4
-$LN7@compilePro:
 ?compileProgram@@YGHPBD@Z ENDP				; compileProgram
 fltused	ENDS
 END
