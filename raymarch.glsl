@@ -6,11 +6,12 @@ const vec3 E = vec3(.0,1e-3,1.);
 const float PI = 3.14159265359;
 
 float hash1(float v){return fract(sin(v)*43758.5); }
-float hash2(vec2 p){return fract(1e4*sin(17.*p.x+.1*p.y)*(.1+abs(sin(13.*p.y+p.x))));}
+//float hash2(vec2 p){return fract(1e4*sin(17.*p.x+.1*p.y)*(.1+abs(sin(13.*p.y+p.x))));}
+float hash2(vec2 p){return fract(sin(17.*hash1(p.x)+54.*hash1(p.y)));}
 //float hash3(vec3 p){return hash2(vec2(hash2(p.xy), p.z));}
 float noise2(vec2 p){
 	vec2 P=floor(p);p-=P;
-	p*=p*(3.-2.*p);
+	//p*=p*(3.-2.*p);
 	return mix(mix(hash2(P), hash2(P+E.zx), p.x), mix(hash2(P+E.xz), hash2(P+E.zz), p.x), p.y);
 }
 /*float noise3(vec3 p){
@@ -43,7 +44,7 @@ float ring(vec3 p, float r, float R, float t) {
 float vmax(vec2 p) { return max(p.x, p.y); }
 
 float F4(vec3 p) {
-	p = RY(T*.1) * p;
+	//p = RY(T*.1) * p;
 	const float S = 2.8;
 	const int N = 5;
 	vec3 C = vec3(1.1,.9,1.9);
