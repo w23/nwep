@@ -63,6 +63,56 @@ static MMTIME MMTime =
 	TIME_SAMPLES, 0
 };
 
+extern "C" int __fltused = 1;
+
+static int compileProgram(const char *fragment) {
+	const int pid = oglCreateProgram();
+	const int fsId = oglCreateShader(GL_FRAGMENT_SHADER);
+	oglShaderSource(fsId, 1, &fragment, 0);
+	oglCompileShader(fsId);
+
+#ifdef SHADER_DEBUG
+	int result;
+	char info[2048];
+#define oglGetObjectParameteriv ((PFNGLGETOBJECTPARAMETERIVARBPROC) wglGetProcAddress("glGetObjectParameterivARB"))
+#define oglGetInfoLog ((PFNGLGETINFOLOGARBPROC) wglGetProcAddress("glGetInfoLogARB"))
+	oglGetObjectParameteriv(fsId, GL_OBJECT_COMPILE_STATUS_ARB, &result);
+	oglGetInfoLog(fsId, 2047, NULL, (char*)info);
+	if (!result)
+	{
+		MessageBox(NULL, info, "", 0x00000000L);
+		ExitProcess(0);
+	}
+#endif
+
+	oglAttachShader(pid, fsId);
+	oglLinkProgram(pid);
+	return pid;
+}
+
+static void initFbTex(int fb, int tex) {
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, XRES, YRES, 0, GL_RGBA, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	oglBindFramebuffer(GL_FRAMEBUFFER, fb);
+	oglFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+}
+
+static void paint(int prog, int src_tex, int dst_fb, float time) {
+	oglUseProgram(prog);
+	glBindTexture(GL_TEXTURE_2D, src_tex);
+	oglBindFramebuffer(GL_FRAMEBUFFER, dst_fb);
+	oglUniform1f(oglGetUniformLocation(prog, "T"), time);
+	oglUniform1i(oglGetUniformLocation(prog, "FB"), 0);
+	glRects(-1, -1, 1, 1);
+}
+
+enum { FbTex_Ray = 1, FbTex_Dof, FbTex_COUNT };
+
+
 #define FULLSCREEN
 #define SHADER_DEBUG
 void entrypoint( void )
@@ -81,32 +131,17 @@ void entrypoint( void )
 	wglMakeCurrent(hDC,wglCreateContext(hDC));
 	EXT_Init();
 
-	// initialize, compile and link shader(s)
-	const int pid = oglCreateProgram();
-	const int fsId = oglCreateShader(GL_FRAGMENT_SHADER);
-	oglShaderSource(fsId, 1, &post_glsl, 0);
-	oglShaderSource(fsId, 1, &out_glsl, 0);
-	oglShaderSource(fsId, 1, &fragment_glsl, 0);
-	oglCompileShader(fsId);
+	const int p_ray = compileProgram(fragment_glsl);
+	const int p_dof = compileProgram(post_glsl);
+	const int p_out = compileProgram(out_glsl);
 
-	#ifdef SHADER_DEBUG
-	int result;
-	char info[2048];
-	#define oglGetObjectParameteriv ((PFNGLGETOBJECTPARAMETERIVARBPROC) wglGetProcAddress("glGetObjectParameterivARB"))
-	#define oglGetInfoLog ((PFNGLGETINFOLOGARBPROC) wglGetProcAddress("glGetInfoLogARB"))
-	oglGetObjectParameteriv(fsId, GL_OBJECT_COMPILE_STATUS_ARB, &result);
-	oglGetInfoLog(fsId, 2047, NULL, (char*)info);
-	if(!result)
-	{
-		MessageBox(NULL, info, "", 0x00000000L);
-		ExitProcess(0);
-	}
-	#endif
+	GLuint tex[FbTex_COUNT], fb[FbTex_COUNT];
+	glGenTextures(FbTex_COUNT, tex);
+	oglGenFramebuffers(FbTex_COUNT, fb);
 
-	oglAttachShader(pid, fsId);
-	oglLinkProgram(pid);
-
-	// initialize sound
+	initFbTex(tex[FbTex_Ray], fb[FbTex_Ray]);
+	initFbTex(tex[FbTex_Dof], fb[FbTex_Dof]);
+// initialize sound
 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)_4klang_render, lpSoundBuffer, 0, 0);
 	waveOutOpen(&hWaveOut, WAVE_MAPPER, &WaveFMT, NULL, 0, CALLBACK_NULL);
 	waveOutPrepareHeader(hWaveOut, &WaveHDR, sizeof(WaveHDR));
@@ -117,9 +152,10 @@ void entrypoint( void )
 	do 
 	{
 		waveOutGetPosition(hWaveOut, &MMTime, sizeof(MMTIME));
-		oglUseProgram(pid);
-		oglUniform1i(oglGetUniformLocation(pid, VAR_T), timeGetTime() - to);
-		glRects(-1, -1, 1, 1);
+		const float time = (timeGetTime() - to) * 1e-3f;
+		paint(p_ray, 0, fb[FbTex_Ray], time);
+		paint(p_dof, tex[FbTex_Ray], fb[FbTex_Dof], time);
+		paint(p_out, tex[FbTex_Dof], 0, time);
 		SwapBuffers(hDC);
 	} while(!GetAsyncKeyState(VK_ESCAPE) && MMTime.u.sample < 5990000);
 

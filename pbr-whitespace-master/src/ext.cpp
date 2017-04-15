@@ -16,18 +16,14 @@
 //--- d a t a ---------------------------------------------------------------
 
 #include "ext.h"
-void* myglfunc[9];
-void EXT_Init( void )
+#define FUNCLIST_DO(T, N) T ogl##N;
+FUNCLIST FUNCLIST_DBG
+#undef FUNCLIST_DO
+void EXT_Init(void)
 {
-	myglfunc[0] = wglGetProcAddress("glCreateProgram");
-	myglfunc[1] = wglGetProcAddress("glCreateShader");
-	myglfunc[2] = wglGetProcAddress("glShaderSource");
-	myglfunc[3] = wglGetProcAddress("glCompileShader");
-	myglfunc[4] = wglGetProcAddress("glAttachShader");
-	myglfunc[5] = wglGetProcAddress("glLinkProgram");
-	myglfunc[6] = wglGetProcAddress("glUseProgram");
-	myglfunc[7] = wglGetProcAddress("glUniform1i");
-	myglfunc[8] = wglGetProcAddress("glGetUniformLocation");
+#define FUNCLIST_DO(T, N) ogl##N = (T)wglGetProcAddress("gl" # N);
+	FUNCLIST FUNCLIST_DBG
+#undef FUNCLIST_DO
 }
 
 
