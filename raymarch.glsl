@@ -7,34 +7,35 @@ const float PI = 3.14159265359;
 
 float hash1(float v){return fract(sin(v)*43758.5); }
 float hash2(vec2 p){return fract(1e4*sin(17.*p.x+.1*p.y)*(.1+abs(sin(13.*p.y+p.x))));}
-float hash3(vec3 p){return hash2(vec2(hash2(p.xy), p.z));}
+//float hash3(vec3 p){return hash2(vec2(hash2(p.xy), p.z));}
 float noise2(vec2 p){
 	vec2 P=floor(p);p-=P;
 	p*=p*(3.-2.*p);
 	return mix(mix(hash2(P), hash2(P+E.zx), p.x), mix(hash2(P+E.xz), hash2(P+E.zz), p.x), p.y);
 }
-float noise3(vec3 p){
+/*float noise3(vec3 p){
 	vec3 P=floor(p);p-=P;
 	p*=p*(3.-2.*p);
 	return mix(
 		mix(mix(hash3(P      ), hash3(P+E.zxx), p.x), mix(hash3(P+E.xzx), hash3(P+E.zzx), p.x), p.y),
 		mix(mix(hash3(P+E.xxz), hash3(P+E.zxz), p.x), mix(hash3(P+E.xzz), hash3(P+E.zzz), p.x), p.y), p.z);
 }
+*/
 float noise(float p){
 	float P = floor(p); p -= P;
-	p*=p*(3.-2.*p);
+	//p*=p*(3.-2.*p);
 	return mix(hash1(P), hash1(P+1.), p);
 }
 
-float box2(vec2 p, vec2 s) { p = abs(p) - s; return max(p.x, p.y); }
+//float box2(vec2 p, vec2 s) { p = abs(p) - s; return max(p.x, p.y); }
 float box3(vec3 p, vec3 s) { p = abs(p) - s; return max(p.x, max(p.y, p.z)); }
-mat3 RX(float a){ float s=sin(a),c=cos(a); return mat3(1.,0.,0.,0.,c,-s,0.,s,c); }
+//mat3 RX(float a){ float s=sin(a),c=cos(a); return mat3(1.,0.,0.,0.,c,-s,0.,s,c); }
 mat3 RY(float a){	float s=sin(a),c=cos(a); return mat3(c,0.,s,0.,1.,0,-s,0.,c); }
-mat3 RZ(float a){ float s=sin(a),c=cos(a); return mat3(c,s,0.,-s,c,0.,0.,0.,1.); }
+//mat3 RZ(float a){ float s=sin(a),c=cos(a); return mat3(c,s,0.,-s,c,0.,0.,0.,1.); }
 
 float ball(vec3 p, float r) { return length(p) - r; }
 vec3 rep3(vec3 p, vec3 r) { return mod(p,r) - r*.5; }
-vec2 rep2(vec2 p, vec2 r) { return mod(p,r) - r*.5; }
+//vec2 rep2(vec2 p, vec2 r) { return mod(p,r) - r*.5; }
 float ring(vec3 p, float r, float R, float t) {
 	float pr = length(p);
 	return max(abs(p.y)-t, max(pr - R, r - pr));
@@ -52,7 +53,7 @@ float F4(vec3 p) {
 		p.xy += step(p.x, p.y)*(p.yx - p.xy);
     p.xz += step(p.x, p.z)*(p.zx - p.xz);
     p.yz += step(p.y, p.z)*(p.zy - p.yz);
-		p = p * RZ(.1);
+		p = p * RY(.7);
 		p.xy = p.xy * S - (S - 1.) * C.xy;
 		p.z = S * p.z;
 		if (p.z > .5 * C.z * (S - 1.))
@@ -62,15 +63,16 @@ float F4(vec3 p) {
 	return box3(p, vec3(1.)) * pow(S, -float(N));
 }
 
-bool dlight = true, detail = false, domat = false;
+bool dlight = true, detail = false;
 int mindex = 0;
 
-#define PICK(d, dn, mn) if(domat){if(dn<d){d=dn;mindex=mn;}}else d=min(d,dn);
+#define PICK(d, dn, mn) if(detail){if(dn<d){d=dn;mindex=mn;}}else d=min(d,dn);
 
 float path(vec3 p) {
 	float flr = vmax(abs(p.xy) - vec2(2.,.1));
 	if (detail)
-		flr = flr+max(0.,.2*box2(rep2(p.xz,vec2(.1)), vec2(.01)));
+		//flr = flr+max(0.,.2*box2(rep2(p.xz,vec2(.1)), vec2(.01)));
+		flr = flr+max(0.,.2*box3(rep3(p,vec3(.15)), vec3(.01)));
 	p.x = abs(p.x)+.02;
 	float rls = vmax(abs(p.xy-vec2(2.,1.)) - vec2(.02));
 	float rlst = max(abs(mod(p.z,.4)-.2)-.02, max(abs(p.y-.5)-.5, abs(p.x-2.)-.02));
@@ -99,8 +101,8 @@ float W(vec3 p) {
 
 	float rings = ball(p,9.);
 	rings = max(rings, abs(abs(p.y)-3.)-.5);
-	rings = max(rings, -box2(rep2(vec2(a2*4.,p.y*.2), vec2(.4)), vec2(.08)));
-	if (detail) rings -= .1*noise3(floor(p*10.));
+	//rings = max(rings, -box2(rep2(vec2(a2*4.,p.y*.2), vec2(.4)), vec2(.08)));
+	//if (detail) rings -= .1*noise3(floor(p*10.));
 	rings = min(rings, box3(rep3(p,vec3(11.8)), vec3(.1, 100., .1)));
 	rings = max(rings, -ball(p,8.9));
 
@@ -128,34 +130,30 @@ vec3 N(vec3 p) {
 
 void material(vec3 p, out vec3 n, out vec3 em, out vec3 a, out float r, out float m) {
 	detail = true;
-	domat = true;
 	n = N(p);
 	em = vec3(0.,1.,1.);
 	a = vec3(0.);
 	r = 0.;
-	m = 0.;
+	m = .99;
 
 	if (mindex == 1) {
 		em = vec3(0.);
 		a = vec3(1.);
 		r = .5;
-		m = .99;
 	} else if (mindex == 2) {
 		float el = sin(T + dot(normalize(vec3(1.)), floor(p/2.)));
 		a = max(0.,el) * vec3(1.);
 		em = vec3(0.);
 		r = .2;
-		m = .99;
 	} else if (mindex == 3) {
 		em = vec3(0.);
 		a = vec3(1.);
 		r = .8;
-		m = .99;
 	} else if (mindex == 4) {
 		em = vec3(0.);
 		a = vec3(.56, .57, .58);
 		m = .8;
-		r = .2 + .6 * pow(noise3(p*4.+40.),4.);
+		r = .2 + .6 * pow(noise2(p.xz*4.+40.),4.);
 	} else if (mindex == 5) {
 		em = vec3(0.);
 		a = vec3(1.);
@@ -170,7 +168,6 @@ void material(vec3 p, out vec3 n, out vec3 em, out vec3 a, out float r, out floa
 				m = .0;
 			}
 	}
-	domat = false;
 	detail = false;
 }
 
