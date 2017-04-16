@@ -79,6 +79,7 @@ FUNCLIST FUNCLIST_DBG
 #pragma data_seg(".compileProgram")
 //#define SHADER_DEBUG
 static int compileProgram(const char *fragment) {
+#if 0
 	const int pid = oglCreateProgram();
 	const int fsId = oglCreateShader(GL_FRAGMENT_SHADER);
 	oglShaderSource(fsId, 1, &fragment, 0);
@@ -101,6 +102,10 @@ static int compileProgram(const char *fragment) {
 	oglAttachShader(pid, fsId);
 	oglLinkProgram(pid);
 
+#else
+	const int pid = oglCreateShaderProgramv(GL_FRAGMENT_SHADER, 1, &fragment);
+#endif
+
 #ifdef SHADER_DEBUG
 #define oglGetObjectParameteriv ((PFNGLGETOBJECTPARAMETERIVARBPROC) wglGetProcAddress("glGetObjectParameterivARB"))
 #define oglGetInfoLog ((PFNGLGETINFOLOGARBPROC) wglGetProcAddress("glGetInfoLogARB"))
@@ -113,6 +118,7 @@ static int compileProgram(const char *fragment) {
 		}
 #endif
 	return pid;
+
 }
 
 static void initFbTex(int fb, int tex) {

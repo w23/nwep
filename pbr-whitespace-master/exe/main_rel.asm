@@ -9,46 +9,38 @@
 INCLUDELIB LIBCMT
 INCLUDELIB OLDNAMES
 
-PUBLIC	__fltused
-PUBLIC	?lpSoundBuffer@@3PAMA				; lpSoundBuffer
 PUBLIC	?fragment_glsl@@3PBDB				; fragment_glsl
 PUBLIC	?post_glsl@@3PBDB				; post_glsl
+PUBLIC	__fltused
+PUBLIC	?lpSoundBuffer@@3PAMA				; lpSoundBuffer
 _BSS	SEGMENT
-?lpSoundBuffer@@3PAMA DD 0cb9f80H DUP (?)		; lpSoundBuffer
+?lpSoundBuffer@@3PAMA DD 0ac06c0H DUP (?)		; lpSoundBuffer
 _BSS	ENDS
 entry	SEGMENT
-$SG48334 DB	'glCreateShader', 00H
+$SG52207 DB	'glCreateShaderProgramv', 00H
 	ORG $+1
-$SG48335 DB	'glShaderSource', 00H
-	ORG $+1
-$SG48336 DB	'glCompileShader', 00H
-$SG48337 DB	'glCreateProgram', 00H
-$SG48338 DB	'glAttachShader', 00H
-	ORG $+1
-$SG48339 DB	'glLinkProgram', 00H
-	ORG $+2
-$SG48340 DB	'glUseProgram', 00H
+$SG52208 DB	'glUseProgram', 00H
 	ORG $+3
-$SG48341 DB	'glGetUniformLocation', 00H
+$SG52209 DB	'glGetUniformLocation', 00H
 	ORG $+3
-$SG48342 DB	'glUniform1i', 00H
-$SG48343 DB	'glUniform2f', 00H
-$SG48344 DB	'glGenFramebuffers', 00H
+$SG52210 DB	'glUniform1i', 00H
+$SG52211 DB	'glUniform2f', 00H
+$SG52212 DB	'glGenFramebuffers', 00H
 	ORG $+2
-$SG48345 DB	'glBindFramebuffer', 00H
+$SG52213 DB	'glBindFramebuffer', 00H
 	ORG $+2
-$SG48346 DB	'glFramebufferTexture2D', 00H
+$SG52214 DB	'glFramebufferTexture2D', 00H
 entry	ENDS
 compileProgram	SEGMENT
-$SG48298 DB	'Q', 00H
+$SG52176 DB	'Q', 00H
 	ORG $+2
-$SG48299 DB	'FB', 00H
+$SG52177 DB	'FB', 00H
 	ORG $+1
-$SG48300 DB	'V', 00H
+$SG52178 DB	'V', 00H
 compileProgram	ENDS
 wavehdr	SEGMENT
 ?WaveHDR@@3Uwavehdr_tag@@A DD FLAT:?lpSoundBuffer@@3PAMA ; WaveHDR
-	DD	032e7e00H
+	DD	02b01b00H
 	DD	00H
 	DD	00H
 	DD	00H
@@ -66,33 +58,7 @@ wavefmt	SEGMENT
 	DW	00H
 wavefmt	ENDS
 CONST	SEGMENT
-?pfd@@3UtagPIXELFORMATDESCRIPTOR@@B DW 028H		; pfd
-	DW	01H
-	DD	025H
-	DB	00H
-	DB	020H
-	DB	00H
-	DB	00H
-	DB	00H
-	DB	00H
-	DB	00H
-	DB	00H
-	DB	08H
-	DB	00H
-	DB	00H
-	DB	00H
-	DB	00H
-	DB	00H
-	DB	00H
-	DB	020H
-	DB	00H
-	DB	00H
-	DB	00H
-	DB	00H
-	DD	00H
-	DD	00H
-	DD	00H
-$SG47338 DB	'uniform int Q;uniform vec2 V;float T=Q*.001;const vec3 v'
+$SG51222 DB	'uniform int Q;uniform vec2 V;float T=Q*.001;const vec3 v'
 	DB	'=vec3(0.,.001,1.);const float m=3.14159;float f(float v){retu'
 	DB	'rn fract(sin(v)*43758.5);}float x(vec2 v){return fract(sin(17'
 	DB	'.*f(v.r)+54.*f(v.g)));}float s(vec2 f){vec2 m=floor(f);f-=m;r'
@@ -168,7 +134,7 @@ $SG47338 DB	'uniform int Q;uniform vec2 V;float T=Q*.001;const vec3 v'
 	DB	'*f,l,C,N;float p,u;K(x,N,C,l,u,p);e=C+a(x,-f,N,l,p,u);gl_Frag'
 	DB	'Color=vec4(e,s.r);}', 00H
 	ORG $+7
-$SG47341 DB	'uniform sampler2D FB;uniform vec2 V;void main(){vec2 v=g'
+$SG51225 DB	'uniform sampler2D FB;uniform vec2 V;void main(){vec2 v=g'
 	DB	'l_FragCoord.rg/V,s=vec2(.002*V.g/V.r,.002),b=vec2(0.,1.1),a;v'
 	DB	'ec3 g=vec3(0.);vec4 F=texture2D(FB,v),r=vec4(F.rgb,1.),t;int '
 	DB	'c=256;float m=4.,i=2.4,B=1.,p;mat2 l=mat2(cos(i),sin(i),-sin('
@@ -177,10 +143,38 @@ $SG47341 DB	'uniform sampler2D FB;uniform vec2 V;void main(){vec2 v=g'
 	DB	'rgb,1.)*step(p*.01,step(p,abs(t.a-m)/V.r));g=pow(g/float(c),v'
 	DB	'ec3(2.))+r.rgb/r.a;gl_FragColor=vec4(pow(g/(g+1.),vec3(1./2.2'
 	DB	')),1.);}', 00H
+?pfd@@3UtagPIXELFORMATDESCRIPTOR@@B DW 028H		; pfd
+	DW	01H
+	DD	025H
+	DB	00H
+	DB	020H
+	DB	00H
+	DB	00H
+	DB	00H
+	DB	00H
+	DB	00H
+	DB	00H
+	DB	08H
+	DB	00H
+	DB	00H
+	DB	00H
+	DB	00H
+	DB	00H
+	DB	00H
+	DB	020H
+	DB	00H
+	DB	00H
+	DB	00H
+	DB	00H
+	DD	00H
+	DD	00H
+	DD	00H
 CONST	ENDS
 _DATA	SEGMENT
+?fragment_glsl@@3PBDB DD FLAT:$SG51222			; fragment_glsl
+?post_glsl@@3PBDB DD FLAT:$SG51225			; post_glsl
 __fltused DD	01H
-?fragment_glsl@@3PBDB DD FLAT:$SG47338			; fragment_glsl
+	ORG $+4
 ?screenSettings@@3U_devicemodeA@@A DB 00H		; screenSettings
 	ORG $+31
 	DW	00H
@@ -211,7 +205,6 @@ __fltused DD	01H
 	DD	00H
 	DD	00H
 	DD	00H
-?post_glsl@@3PBDB DD FLAT:$SG47341			; post_glsl
 _DATA	ENDS
 PUBLIC	?entrypoint@@YGXXZ				; entrypoint
 EXTRN	__imp__ExitProcess@4:PROC
@@ -241,12 +234,7 @@ EXTRN	__4klang_render@4:PROC
 EXTRN	__fltused:DWORD
 _BSS	SEGMENT
 ?hWaveOut@@3PAUHWAVEOUT__@@A DD 01H DUP (?)		; hWaveOut
-?oglCreateShader@@3P6GII@ZA DD 01H DUP (?)		; oglCreateShader
-?oglShaderSource@@3P6GXIHPAPBDPBH@ZA DD 01H DUP (?)	; oglShaderSource
-?oglCompileShader@@3P6GXI@ZA DD 01H DUP (?)		; oglCompileShader
-?oglCreateProgram@@3P6GIXZA DD 01H DUP (?)		; oglCreateProgram
-?oglAttachShader@@3P6GXII@ZA DD 01H DUP (?)		; oglAttachShader
-?oglLinkProgram@@3P6GXI@ZA DD 01H DUP (?)		; oglLinkProgram
+?oglCreateShaderProgramv@@3P6GIIHPBQBD@ZA DD 01H DUP (?) ; oglCreateShaderProgramv
 ?oglUseProgram@@3P6GXI@ZA DD 01H DUP (?)		; oglUseProgram
 ?oglGetUniformLocation@@3P6GHIPBD@ZA DD 01H DUP (?)	; oglGetUniformLocation
 ?oglUniform1i@@3P6GXHH@ZA DD 01H DUP (?)		; oglUniform1i
@@ -265,7 +253,7 @@ _to$1$ = -8						; size = 4
 _p_dof$1$ = -4						; size = 4
 ?entrypoint@@YGXXZ PROC					; entrypoint, COMDAT
 
-; 145  : {
+; 151  : {
 
 	sub	esp, 16					; 00000010H
 	push	ebx
@@ -273,21 +261,21 @@ _p_dof$1$ = -4						; size = 4
 	push	esi
 	push	edi
 
-; 146  : 	// initialize window
-; 147  : 	#ifdef FULLSCREEN
-; 148  : 	ChangeDisplaySettings(&screenSettings,CDS_FULLSCREEN);
+; 152  : 	// initialize window
+; 153  : 	#ifdef FULLSCREEN
+; 154  : 	ChangeDisplaySettings(&screenSettings,CDS_FULLSCREEN);
 
 	push	4
 	push	OFFSET ?screenSettings@@3U_devicemodeA@@A
 	call	DWORD PTR __imp__ChangeDisplaySettingsA@8
 
-; 149  : 	ShowCursor(0);
+; 155  : 	ShowCursor(0);
 
 	xor	ebx, ebx
 	push	ebx
 	call	DWORD PTR __imp__ShowCursor@4
 
-; 150  : 	HDC hDC = GetDC(CreateWindow((LPCSTR)0xC018, 0, WS_POPUP | WS_VISIBLE, 0, 0, XRES, YRES, 0, 0, 0, 0));
+; 156  : 	HDC hDC = GetDC(CreateWindow((LPCSTR)0xC018, 0, WS_POPUP | WS_VISIBLE, 0, 0, XRES, YRES, 0, 0, 0, 0));
 
 	push	ebx
 	push	ebx
@@ -306,12 +294,12 @@ _p_dof$1$ = -4						; size = 4
 	call	DWORD PTR __imp__GetDC@4
 	mov	edi, eax
 
-; 151  : 	#else
-; 152  : 	HDC hDC = GetDC(CreateWindow("static", 0, WS_POPUP | WS_VISIBLE, 0, 0, XRES, YRES, 0, 0, 0, 0));
-; 153  : 	#endif	
-; 154  : 
-; 155  : 	// initalize opengl
-; 156  : 	SetPixelFormat(hDC,ChoosePixelFormat(hDC,&pfd),&pfd);
+; 157  : 	#else
+; 158  : 	HDC hDC = GetDC(CreateWindow("static", 0, WS_POPUP | WS_VISIBLE, 0, 0, XRES, YRES, 0, 0, 0, 0));
+; 159  : 	#endif	
+; 160  : 
+; 161  : 	// initalize opengl
+; 162  : 	SetPixelFormat(hDC,ChoosePixelFormat(hDC,&pfd),&pfd);
 
 	mov	eax, OFFSET ?pfd@@3UtagPIXELFORMATDESCRIPTOR@@B
 	push	eax
@@ -322,7 +310,7 @@ _p_dof$1$ = -4						; size = 4
 	push	edi
 	call	DWORD PTR __imp__SetPixelFormat@12
 
-; 157  : 	wglMakeCurrent(hDC,wglCreateContext(hDC));
+; 163  : 	wglMakeCurrent(hDC,wglCreateContext(hDC));
 
 	push	edi
 	call	DWORD PTR __imp__wglCreateContext@4
@@ -330,92 +318,77 @@ _p_dof$1$ = -4						; size = 4
 	push	edi
 	call	DWORD PTR __imp__wglMakeCurrent@8
 
-; 158  : 	
-; 159  : #define FUNCLIST_DO(T, N) ogl##N = (T)wglGetProcAddress("gl" # N);
-; 160  : 	FUNCLIST FUNCLIST_DBG
+; 164  : 	
+; 165  : #define FUNCLIST_DO(T, N) ogl##N = (T)wglGetProcAddress("gl" # N);
+; 166  : 	FUNCLIST FUNCLIST_DBG
 
 	mov	esi, DWORD PTR __imp__wglGetProcAddress@4
-	push	OFFSET $SG48334
+	push	OFFSET $SG52207
 	call	esi
-	push	OFFSET $SG48335
-	mov	DWORD PTR ?oglCreateShader@@3P6GII@ZA, eax
+	push	OFFSET $SG52208
+	mov	DWORD PTR ?oglCreateShaderProgramv@@3P6GIIHPBQBD@ZA, eax
 	call	esi
-	push	OFFSET $SG48336
-	mov	DWORD PTR ?oglShaderSource@@3P6GXIHPAPBDPBH@ZA, eax
-	call	esi
-	push	OFFSET $SG48337
-	mov	DWORD PTR ?oglCompileShader@@3P6GXI@ZA, eax
-	call	esi
-	push	OFFSET $SG48338
-	mov	DWORD PTR ?oglCreateProgram@@3P6GIXZA, eax
-	call	esi
-	push	OFFSET $SG48339
-	mov	DWORD PTR ?oglAttachShader@@3P6GXII@ZA, eax
-	call	esi
-	push	OFFSET $SG48340
-	mov	DWORD PTR ?oglLinkProgram@@3P6GXI@ZA, eax
-	call	esi
-	push	OFFSET $SG48341
+	push	OFFSET $SG52209
 	mov	DWORD PTR ?oglUseProgram@@3P6GXI@ZA, eax
 	call	esi
-	push	OFFSET $SG48342
+	push	OFFSET $SG52210
 	mov	DWORD PTR ?oglGetUniformLocation@@3P6GHIPBD@ZA, eax
 	call	esi
-	push	OFFSET $SG48343
+	push	OFFSET $SG52211
 	mov	DWORD PTR ?oglUniform1i@@3P6GXHH@ZA, eax
 	call	esi
-	push	OFFSET $SG48344
+	push	OFFSET $SG52212
 	mov	DWORD PTR ?oglUniform2f@@3P6GXHMM@ZA, eax
 	call	esi
-	push	OFFSET $SG48345
+	push	OFFSET $SG52213
 	mov	DWORD PTR ?oglGenFramebuffers@@3P6GXHPAI@ZA, eax
 	call	esi
-	push	OFFSET $SG48346
+	push	OFFSET $SG52214
 	mov	DWORD PTR ?oglBindFramebuffer@@3P6GXII@ZA, eax
 	call	esi
 
-; 161  : #undef FUNCLIST_DO
-; 162  : 
-; 163  : 	const int p_ray = compileProgram(fragment_glsl);
+; 167  : #undef FUNCLIST_DO
+; 168  : 
+; 169  : 	const int p_ray = compileProgram(fragment_glsl);
 
 	push	DWORD PTR ?fragment_glsl@@3PBDB		; fragment_glsl
 	mov	DWORD PTR ?oglFramebufferTexture2D@@3P6GXIIIIH@ZA, eax
 	call	?compileProgram@@YGHPBD@Z		; compileProgram
 
-; 164  : 	const int p_dof = compileProgram(post_glsl);
+; 170  : 	const int p_dof = compileProgram(post_glsl);
 
 	push	DWORD PTR ?post_glsl@@3PBDB		; post_glsl
 	mov	ebp, eax
 	call	?compileProgram@@YGHPBD@Z		; compileProgram
 	mov	DWORD PTR _p_dof$1$[esp+32], eax
 
-; 165  : 	//const int p_out = compileProgram(out_glsl);
-; 166  : 
-; 167  : 	GLuint tex[FbTex_COUNT], fb[FbTex_COUNT];
-; 168  : 	glGenTextures(FbTex_COUNT, tex);
+; 171  : 	//const int p_out = compileProgram(out_glsl);
+; 172  : 
+; 173  : 	GLuint tex[FbTex_COUNT], fb[FbTex_COUNT];
+; 174  : 	glGenTextures(FbTex_COUNT, tex);
 
 	lea	eax, DWORD PTR _tex$[esp+32]
 	push	eax
 	push	1
 	call	DWORD PTR __imp__glGenTextures@8
 
-; 169  : 	oglGenFramebuffers(FbTex_COUNT, fb);
+; 175  : 	oglGenFramebuffers(FbTex_COUNT, fb);
 
 	lea	eax, DWORD PTR _fb$[esp+32]
 	push	eax
 	push	1
 	call	DWORD PTR ?oglGenFramebuffers@@3P6GXHPAI@ZA
 
-; 170  : 
-; 171  : 	initFbTex(tex[FbTex_Ray], fb[FbTex_Ray]);
+; 176  : 
+; 177  : 	initFbTex(tex[FbTex_Ray], fb[FbTex_Ray]);
 
 	push	DWORD PTR _fb$[esp+32]
 	push	DWORD PTR _tex$[esp+36]
 	call	?initFbTex@@YGXHH@Z			; initFbTex
 
-; 172  : 	//initFbTex(tex[FbTex_Dof], fb[FbTex_Dof]);
-; 173  : // initialize sound
-; 174  : 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)_4klang_render, lpSoundBuffer, 0, 0);
+; 178  : 	//initFbTex(tex[FbTex_Dof], fb[FbTex_Dof]);
+; 179  : // initialize sound
+; 180  : 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)_4klang_render, lpSoundBuffer, 0, 0);
 
 	push	ebx
 	push	ebx
@@ -425,8 +398,8 @@ _p_dof$1$ = -4						; size = 4
 	push	ebx
 	call	DWORD PTR __imp__CreateThread@24
 
-; 175  : 	//_4klang_render(lpSoundBuffer);
-; 176  : 	waveOutOpen(&hWaveOut, WAVE_MAPPER, &WaveFMT, NULL, 0, CALLBACK_NULL);
+; 181  : 	//_4klang_render(lpSoundBuffer);
+; 182  : 	waveOutOpen(&hWaveOut, WAVE_MAPPER, &WaveFMT, NULL, 0, CALLBACK_NULL);
 
 	push	ebx
 	push	ebx
@@ -436,7 +409,7 @@ _p_dof$1$ = -4						; size = 4
 	push	OFFSET ?hWaveOut@@3PAUHWAVEOUT__@@A
 	call	DWORD PTR __imp__waveOutOpen@24
 
-; 177  : 	waveOutPrepareHeader(hWaveOut, &WaveHDR, sizeof(WaveHDR));
+; 183  : 	waveOutPrepareHeader(hWaveOut, &WaveHDR, sizeof(WaveHDR));
 
 	push	32					; 00000020H
 	mov	esi, OFFSET ?WaveHDR@@3Uwavehdr_tag@@A
@@ -444,35 +417,35 @@ _p_dof$1$ = -4						; size = 4
 	push	DWORD PTR ?hWaveOut@@3PAUHWAVEOUT__@@A
 	call	DWORD PTR __imp__waveOutPrepareHeader@12
 
-; 178  : 	waveOutWrite(hWaveOut, &WaveHDR, sizeof(WaveHDR));
+; 184  : 	waveOutWrite(hWaveOut, &WaveHDR, sizeof(WaveHDR));
 
 	push	32					; 00000020H
 	push	esi
 	push	DWORD PTR ?hWaveOut@@3PAUHWAVEOUT__@@A
 	call	DWORD PTR __imp__waveOutWrite@12
 
-; 179  : 	const int to = timeGetTime();
+; 185  : 	const int to = timeGetTime();
 
 	mov	ebx, DWORD PTR __imp__timeGetTime@0
 	call	ebx
 	mov	DWORD PTR _to$1$[esp+32], eax
 $LL4@entrypoint:
 
-; 180  : 	
-; 181  : 	//glViewport(0, 0, XRES, YRES);
-; 182  : 	// play intro
-; 183  : 	do 
-; 184  : 	{
-; 185  : 		//waveOutGetPosition(hWaveOut, &MMTime, sizeof(MMTIME));
-; 186  : 		//const float time = (timeGetTime() - to) * 1e-3f;
-; 187  : 		const int time = timeGetTime() - to;
+; 186  : 	
+; 187  : 	//glViewport(0, 0, XRES, YRES);
+; 188  : 	// play intro
+; 189  : 	do 
+; 190  : 	{
+; 191  : 		//waveOutGetPosition(hWaveOut, &MMTime, sizeof(MMTIME));
+; 192  : 		//const float time = (timeGetTime() - to) * 1e-3f;
+; 193  : 		const int time = timeGetTime() - to;
 
 	call	ebx
 	mov	esi, eax
 	sub	esi, DWORD PTR _to$1$[esp+32]
 
-; 188  : 		//paint(p_ray, 0, 0/*fb[FbTex_Ray]*/, ray, time);
-; 189  : 		paint(p_ray, 0, fb[FbTex_Ray], time);
+; 194  : 		//paint(p_ray, 0, 0/*fb[FbTex_Ray]*/, ray, time);
+; 195  : 		paint(p_ray, 0, fb[FbTex_Ray], time);
 
 	push	esi
 	push	DWORD PTR _fb$[esp+36]
@@ -480,7 +453,7 @@ $LL4@entrypoint:
 	push	ebp
 	call	?paint@@YGXHHHH@Z			; paint
 
-; 190  : 		paint(p_dof, tex[FbTex_Ray], 0, time);
+; 196  : 		paint(p_dof, tex[FbTex_Ray], 0, time);
 
 	push	esi
 	push	0
@@ -488,19 +461,19 @@ $LL4@entrypoint:
 	push	DWORD PTR _p_dof$1$[esp+44]
 	call	?paint@@YGXHHHH@Z			; paint
 
-; 191  : 		//paint(p_dof, tex[FbTex_Ray], fb[FbTex_Dof], time);
-; 192  : 		//paint(p_out, tex[FbTex_Dof], 0, time);
-; 193  : 		SwapBuffers(hDC);
+; 197  : 		//paint(p_dof, tex[FbTex_Ray], fb[FbTex_Dof], time);
+; 198  : 		//paint(p_out, tex[FbTex_Dof], 0, time);
+; 199  : 		SwapBuffers(hDC);
 
 	push	edi
 	call	DWORD PTR __imp__SwapBuffers@4
 
-; 194  : 		if (time > 125 * 1000) break;
+; 200  : 		if (time > 125 * 1000) break;
 
 	cmp	esi, 125000				; 0001e848H
 	jg	SHORT $LN3@entrypoint
 
-; 195  : 		PeekMessageA(0, 0, 0, 0, PM_REMOVE);
+; 201  : 		PeekMessageA(0, 0, 0, 0, PM_REMOVE);
 
 	push	1
 	xor	eax, eax
@@ -510,7 +483,7 @@ $LL4@entrypoint:
 	push	eax
 	call	DWORD PTR __imp__PeekMessageA@20
 
-; 196  : 	} while (!GetAsyncKeyState(VK_ESCAPE));
+; 202  : 	} while (!GetAsyncKeyState(VK_ESCAPE));
 
 	push	27					; 0000001bH
 	call	DWORD PTR __imp__GetAsyncKeyState@4
@@ -518,15 +491,15 @@ $LL4@entrypoint:
 	je	SHORT $LL4@entrypoint
 $LN3@entrypoint:
 
-; 197  : 		// && MMTime.u.sample < 5990000);
-; 198  : 
-; 199  : 	#ifdef CLEANDESTROY
-; 200  : 	sndPlaySound(0,0);
-; 201  : 	ChangeDisplaySettings( 0, 0 );
-; 202  : 	ShowCursor(1);
-; 203  : 	#endif
+; 203  : 		// && MMTime.u.sample < 5990000);
 ; 204  : 
-; 205  : 	ExitProcess(0);
+; 205  : 	#ifdef CLEANDESTROY
+; 206  : 	sndPlaySound(0,0);
+; 207  : 	ChangeDisplaySettings( 0, 0 );
+; 208  : 	ShowCursor(1);
+; 209  : 	#endif
+; 210  : 
+; 211  : 	ExitProcess(0);
 
 	push	0
 	call	DWORD PTR __imp__ExitProcess@4
@@ -548,59 +521,59 @@ _dst_fb$ = 16						; size = 4
 _time$ = 20						; size = 4
 ?paint@@YGXHHHH@Z PROC					; paint, COMDAT
 
-; 129  : static void paint(int prog, int src_tex, int dst_fb, int time) {
+; 135  : static void paint(int prog, int src_tex, int dst_fb, int time) {
 
 	push	ebp
 	mov	ebp, esp
 
-; 130  : 	oglUseProgram(prog);
+; 136  : 	oglUseProgram(prog);
 
 	push	DWORD PTR _prog$[ebp]
 	call	DWORD PTR ?oglUseProgram@@3P6GXI@ZA
 
-; 131  : 	glBindTexture(GL_TEXTURE_2D, src_tex);
+; 137  : 	glBindTexture(GL_TEXTURE_2D, src_tex);
 
 	push	DWORD PTR _src_tex$[ebp]
 	push	3553					; 00000de1H
 	call	DWORD PTR __imp__glBindTexture@8
 
-; 132  : 	oglBindFramebuffer(GL_FRAMEBUFFER, dst_fb);
+; 138  : 	oglBindFramebuffer(GL_FRAMEBUFFER, dst_fb);
 
 	push	DWORD PTR _dst_fb$[ebp]
 	push	36160					; 00008d40H
 	call	DWORD PTR ?oglBindFramebuffer@@3P6GXII@ZA
 
-; 133  : 	oglUniform1i(oglGetUniformLocation(prog, "Q"), time);
+; 139  : 	oglUniform1i(oglGetUniformLocation(prog, "Q"), time);
 
 	push	DWORD PTR _time$[ebp]
-	push	OFFSET $SG48298
+	push	OFFSET $SG52176
 	push	DWORD PTR _prog$[ebp]
 	call	DWORD PTR ?oglGetUniformLocation@@3P6GHIPBD@ZA
 	push	eax
 	call	DWORD PTR ?oglUniform1i@@3P6GXHH@ZA
 
-; 134  : 	oglUniform1i(oglGetUniformLocation(prog, "FB"), 0);
+; 140  : 	oglUniform1i(oglGetUniformLocation(prog, "FB"), 0);
 
 	push	0
-	push	OFFSET $SG48299
+	push	OFFSET $SG52177
 	push	DWORD PTR _prog$[ebp]
 	call	DWORD PTR ?oglGetUniformLocation@@3P6GHIPBD@ZA
 	push	eax
 	call	DWORD PTR ?oglUniform1i@@3P6GXHH@ZA
 
-; 135  : 	oglUniform2f(oglGetUniformLocation(prog, "V"), XRES, YRES);
+; 141  : 	oglUniform2f(oglGetUniformLocation(prog, "V"), XRES, YRES);
 
 	push	ecx
 	push	ecx
 	mov	DWORD PTR [esp+4], 1144258560		; 44340000H
 	mov	DWORD PTR [esp], 1151336448		; 44a00000H
-	push	OFFSET $SG48300
+	push	OFFSET $SG52178
 	push	DWORD PTR _prog$[ebp]
 	call	DWORD PTR ?oglGetUniformLocation@@3P6GHIPBD@ZA
 	push	eax
 	call	DWORD PTR ?oglUniform2f@@3P6GXHMM@ZA
 
-; 136  : 	glRects(-1, -1, 1, 1);
+; 142  : 	glRects(-1, -1, 1, 1);
 
 	push	1
 	push	1
@@ -608,7 +581,7 @@ _time$ = 20						; size = 4
 	push	-1
 	call	DWORD PTR __imp__glRects@16
 
-; 137  : }
+; 143  : }
 
 	pop	ebp
 	ret	16					; 00000010H
@@ -622,21 +595,21 @@ _fb$ = 8						; size = 4
 _tex$ = 12						; size = 4
 ?initFbTex@@YGXHH@Z PROC				; initFbTex, COMDAT
 
-; 118  : static void initFbTex(int fb, int tex) {
+; 124  : static void initFbTex(int fb, int tex) {
 
 	push	ebx
 	push	ebp
 	push	esi
 	push	edi
 
-; 119  : 	glBindTexture(GL_TEXTURE_2D, tex);
+; 125  : 	glBindTexture(GL_TEXTURE_2D, tex);
 
 	push	DWORD PTR _tex$[esp+12]
 	mov	ebp, 3553				; 00000de1H
 	push	ebp
 	call	DWORD PTR __imp__glBindTexture@8
 
-; 120  : 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, XRES, YRES, 0, GL_RGBA, GL_FLOAT, 0);
+; 126  : 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, XRES, YRES, 0, GL_RGBA, GL_FLOAT, 0);
 
 	xor	ebx, ebx
 	push	ebx
@@ -650,7 +623,7 @@ _tex$ = 12						; size = 4
 	push	ebp
 	call	DWORD PTR __imp__glTexImage2D@36
 
-; 121  : 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+; 127  : 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	mov	esi, DWORD PTR __imp__glTexParameteri@12
 	mov	edi, 9729				; 00002601H
@@ -659,14 +632,14 @@ _tex$ = 12						; size = 4
 	push	ebp
 	call	esi
 
-; 122  : 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+; 128  : 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	push	edi
 	push	10240					; 00002800H
 	push	ebp
 	call	esi
 
-; 123  : 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+; 129  : 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 
 	mov	edi, 33069				; 0000812dH
 	push	edi
@@ -674,21 +647,21 @@ _tex$ = 12						; size = 4
 	push	ebp
 	call	esi
 
-; 124  : 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+; 130  : 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
 	push	edi
 	push	10243					; 00002803H
 	push	ebp
 	call	esi
 
-; 125  : 	oglBindFramebuffer(GL_FRAMEBUFFER, fb);
+; 131  : 	oglBindFramebuffer(GL_FRAMEBUFFER, fb);
 
 	push	DWORD PTR _fb$[esp+12]
 	mov	esi, 36160				; 00008d40H
 	push	esi
 	call	DWORD PTR ?oglBindFramebuffer@@3P6GXII@ZA
 
-; 126  : 	oglFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+; 132  : 	oglFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
 
 	push	ebx
 	push	DWORD PTR _tex$[esp+16]
@@ -701,7 +674,7 @@ _tex$ = 12						; size = 4
 	pop	ebp
 	pop	ebx
 
-; 127  : }
+; 133  : }
 
 	ret	8
 ?initFbTex@@YGXHH@Z ENDP				; initFbTex
@@ -713,81 +686,54 @@ fltused	SEGMENT
 _fragment$ = 8						; size = 4
 ?compileProgram@@YGHPBD@Z PROC				; compileProgram, COMDAT
 
-; 81   : static int compileProgram(const char *fragment) {
+; 82   : #if 0
+; 83   : 	const int pid = oglCreateProgram();
+; 84   : 	const int fsId = oglCreateShader(GL_FRAGMENT_SHADER);
+; 85   : 	oglShaderSource(fsId, 1, &fragment, 0);
+; 86   : 	oglCompileShader(fsId);
+; 87   : 
+; 88   : #ifdef SHADER_DEBUG
+; 89   : 	int result;
+; 90   : 	char info[2048];
+; 91   : #define oglGetObjectParameteriv ((PFNGLGETOBJECTPARAMETERIVARBPROC) wglGetProcAddress("glGetObjectParameterivARB"))
+; 92   : #define oglGetInfoLog ((PFNGLGETINFOLOGARBPROC) wglGetProcAddress("glGetInfoLogARB"))
+; 93   : 	oglGetObjectParameteriv(fsId, GL_OBJECT_COMPILE_STATUS_ARB, &result);
+; 94   : 	oglGetInfoLog(fsId, 2047, NULL, (char*)info);
+; 95   : 	if (!result)
+; 96   : 	{
+; 97   : 		MessageBox(NULL, info, "COMPILE", 0x00000000L);
+; 98   : 		ExitProcess(0);
+; 99   : 	}
+; 100  : #endif
+; 101  : 
+; 102  : 	oglAttachShader(pid, fsId);
+; 103  : 	oglLinkProgram(pid);
+; 104  : 
+; 105  : #else
+; 106  : 	const int pid = oglCreateShaderProgramv(GL_FRAGMENT_SHADER, 1, &fragment);
 
-	push	esi
-	push	edi
-
-; 82   : 	const int pid = oglCreateProgram();
-
-	call	DWORD PTR ?oglCreateProgram@@3P6GIXZA
-
-; 83   : 	const int fsId = oglCreateShader(GL_FRAGMENT_SHADER);
-
-	push	35632					; 00008b30H
-	mov	edi, eax
-	call	DWORD PTR ?oglCreateShader@@3P6GII@ZA
-	mov	esi, eax
-
-; 84   : 	oglShaderSource(fsId, 1, &fragment, 0);
-
-	lea	eax, DWORD PTR _fragment$[esp+4]
-	push	0
+	lea	eax, DWORD PTR _fragment$[esp-4]
 	push	eax
 	push	1
-	push	esi
-	call	DWORD PTR ?oglShaderSource@@3P6GXIHPAPBDPBH@ZA
+	push	35632					; 00008b30H
+	call	DWORD PTR ?oglCreateShaderProgramv@@3P6GIIHPBQBD@ZA
 
-; 85   : 	oglCompileShader(fsId);
-
-	push	esi
-	call	DWORD PTR ?oglCompileShader@@3P6GXI@ZA
-
-; 86   : 
-; 87   : #ifdef SHADER_DEBUG
-; 88   : 	int result;
-; 89   : 	char info[2048];
-; 90   : #define oglGetObjectParameteriv ((PFNGLGETOBJECTPARAMETERIVARBPROC) wglGetProcAddress("glGetObjectParameterivARB"))
-; 91   : #define oglGetInfoLog ((PFNGLGETINFOLOGARBPROC) wglGetProcAddress("glGetInfoLogARB"))
-; 92   : 	oglGetObjectParameteriv(fsId, GL_OBJECT_COMPILE_STATUS_ARB, &result);
-; 93   : 	oglGetInfoLog(fsId, 2047, NULL, (char*)info);
-; 94   : 	if (!result)
-; 95   : 	{
-; 96   : 		MessageBox(NULL, info, "COMPILE", 0x00000000L);
-; 97   : 		ExitProcess(0);
-; 98   : 	}
-; 99   : #endif
-; 100  : 
-; 101  : 	oglAttachShader(pid, fsId);
-
-	push	esi
-	push	edi
-	call	DWORD PTR ?oglAttachShader@@3P6GXII@ZA
-
-; 102  : 	oglLinkProgram(pid);
-
-	push	edi
-	call	DWORD PTR ?oglLinkProgram@@3P6GXI@ZA
-
-; 103  : 
-; 104  : #ifdef SHADER_DEBUG
-; 105  : #define oglGetObjectParameteriv ((PFNGLGETOBJECTPARAMETERIVARBPROC) wglGetProcAddress("glGetObjectParameterivARB"))
-; 106  : #define oglGetInfoLog ((PFNGLGETINFOLOGARBPROC) wglGetProcAddress("glGetInfoLogARB"))
-; 107  : 		oglGetObjectParameteriv(pid, GL_OBJECT_LINK_STATUS_ARB, &result);
-; 108  : 		oglGetInfoLog(pid, 2047, NULL, (char*)info);
-; 109  : 		if (!result)
-; 110  : 		{
-; 111  : 			MessageBox(NULL, info, "LINK", 0x00000000L);
-; 112  : 			ExitProcess(0);
-; 113  : 		}
-; 114  : #endif
-; 115  : 	return pid;
-
-	mov	eax, edi
-	pop	edi
-	pop	esi
-
-; 116  : }
+; 107  : #endif
+; 108  : 
+; 109  : #ifdef SHADER_DEBUG
+; 110  : #define oglGetObjectParameteriv ((PFNGLGETOBJECTPARAMETERIVARBPROC) wglGetProcAddress("glGetObjectParameterivARB"))
+; 111  : #define oglGetInfoLog ((PFNGLGETINFOLOGARBPROC) wglGetProcAddress("glGetInfoLogARB"))
+; 112  : 		oglGetObjectParameteriv(pid, GL_OBJECT_LINK_STATUS_ARB, &result);
+; 113  : 		oglGetInfoLog(pid, 2047, NULL, (char*)info);
+; 114  : 		if (!result)
+; 115  : 		{
+; 116  : 			MessageBox(NULL, info, "LINK", 0x00000000L);
+; 117  : 			ExitProcess(0);
+; 118  : 		}
+; 119  : #endif
+; 120  : 	return pid;
+; 121  : 
+; 122  : }
 
 	ret	4
 ?compileProgram@@YGHPBD@Z ENDP				; compileProgram
