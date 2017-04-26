@@ -218,7 +218,7 @@ const char *raymarch_glsl =
  "}"
  "void main()"
  "{"
-   "vec2 m=gl_FragCoord.xy/V*2.-1.;"
+   "vec2 m=gl_FragCoord.xy/V.xy*2.-1.;"
    "m.x*=V.x/V.y;"
    "float x=11.;"
    "c[0]=vec3(x,6.,x);"

@@ -11,7 +11,10 @@
 #define YRES 720
 #define INTRO_LENGTH 130*1000
 
+#pragma data_seg(".raymarch.glsl")
 #include "raymarch.h"
+
+#pragma data_seg(".post.glsl")
 #include "post.h"
 
 #include "music/4klang.h"
@@ -44,14 +47,15 @@ FUNCLIST_DO(PFNGLLINKPROGRAMPROC, LinkProgram)
   FUNCLIST_DO(PFNGLCHECKFRAMEBUFFERSTATUSPROC, CheckFramebufferStatus)
 #endif
 
-#pragma code_seg(".fltused")
-/*extern "C" {*/ int _fltused = 1; /*}*/
+//#pragma data_seg(".fltused")
+//*extern "C" {*/ int _fltused = 1; /*}*/
 
-
+#pragma data_seg(".pfd")
 static const PIXELFORMATDESCRIPTOR pfd = {
 	sizeof(PIXELFORMATDESCRIPTOR), 1, PFD_DRAW_TO_WINDOW|PFD_SUPPORT_OPENGL|PFD_DOUBLEBUFFER, PFD_TYPE_RGBA,
 	32, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 32, 0, 0, PFD_MAIN_PLANE, 0, 0, 0, 0 };
 
+#pragma data_seg(".devmode")
 static const DEVMODE screenSettings = { {0},
 	#if _MSC_VER < 1400
 	0,0,148,0,0x001c0000,{0},0,0,0,0,0,0,0,0,0,{0},0,32,XRES,YRES,0,0,      // Visual C++ 6.0
@@ -66,8 +70,8 @@ static const DEVMODE screenSettings = { {0},
 	#endif
 	};
 
+#pragma data_seg(".soundbuffer")
 static SAMPLE_TYPE lpSoundBuffer[MAX_SAMPLES * 2];
-static HWAVEOUT hWaveOut;
 
 #pragma data_seg(".wavefmt")
 static const WAVEFORMATEX WaveFMT =
@@ -103,8 +107,8 @@ static MMTIME MMTime =
 FUNCLIST FUNCLIST_DBG
 #undef FUNCLIST_DO
 
-#pragma data_seg(".compileProgram")
-static int compileProgram(const char *fragment) {
+#pragma code_seg(".compileProgram")
+static __inline int compileProgram(const char *fragment) {
 #if 0
 	const int pid = oglCreateProgram();
 	const int fsId = oglCreateShader(GL_FRAGMENT_SHADER);
@@ -150,13 +154,13 @@ static int compileProgram(const char *fragment) {
 	return pid;
 }
 
-static void initFbTex(int fb, int tex) {
+static __inline void initFbTex(int fb, int tex) {
 	glBindTexture(GL_TEXTURE_2D, tex);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, XRES, YRES, 0, GL_RGBA, GL_FLOAT, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	oglBindFramebuffer(GL_FRAMEBUFFER, fb);
 	oglFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
 }
@@ -172,7 +176,7 @@ static void paint(int prog, int src_tex, int dst_fb, int time) {
 
 enum { FbTex_Ray, FbTex_COUNT };
 
-#pragma data_seg(".entry")
+#pragma code_seg(".entry")
 void entrypoint( void )
 {
 	// initialize window
@@ -204,6 +208,7 @@ void entrypoint( void )
 	//initFbTex(tex[FbTex_Dof], fb[FbTex_Dof]);
 
 	// initialize sound
+	HWAVEOUT hWaveOut;
 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)_4klang_render, lpSoundBuffer, 0, 0);
 	//_4klang_render(lpSoundBuffer);
 	waveOutOpen(&hWaveOut, WAVE_MAPPER, &WaveFMT, NULL, 0, CALLBACK_NULL);

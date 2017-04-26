@@ -216,7 +216,7 @@ mat3 lookat(vec3 p, vec3 a, vec3 y) {
 }
 
 void main() {
-	vec2 uv = gl_FragCoord.xy / V * 2. - 1.;
+	vec2 uv = gl_FragCoord.xy / V.xy * 2. - 1.;
 	uv.x *= V.x / V.y;
 	
 	float C = 11.;
