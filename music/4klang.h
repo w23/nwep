@@ -15,8 +15,17 @@
 #define WINDOWS_OBJECT
 
 // declaration of the external synth render function, you'll always need that
-extern "C" void  __stdcall	_4klang_render(void*);
+#ifdef __cplusplus
+extern "C"
+#endif
+void  __stdcall	_4klang_render(void*);
 // declaration of the external envelope buffer. access only if you're song was exported with that option
-extern "C" float _4klang_envelope_buffer;
+#ifdef __cplusplus
+extern "C"
+#endif
+float _4klang_envelope_buffer;
 // declaration of the external note buffer. access only if you're song was exported with that option
-extern "C" int   _4klang_note_buffer;
+#ifdef __cplusplus
+extern "C"
+#endif
+int   _4klang_note_buffer;

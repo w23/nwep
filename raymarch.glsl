@@ -65,7 +65,9 @@ float F4(vec3 p) {
 }
 
 int mindex = 0;
-#define PICK(d, dn, mn) if(dn<d){d=dn;mindex=mn;}
+//#define PICK(d, dn, mn) if(dn<d){d=dn;mindex=mn;}
+void PICK(inout float d, float dn, int mat) { if (dn<d) {d = dn; mindex = mat;} }
+
 
 float path(vec3 p) {
 	float flr = vmax(abs(p.xy) - vec2(2.,.1));
