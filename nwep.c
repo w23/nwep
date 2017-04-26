@@ -31,7 +31,7 @@ FUNCLIST_DO(PFNGLLINKPROGRAMPROC, LinkProgram)
   FUNCLIST_DO(PFNGLUSEPROGRAMPROC, UseProgram) \
   FUNCLIST_DO(PFNGLGETUNIFORMLOCATIONPROC, GetUniformLocation) \
   FUNCLIST_DO(PFNGLUNIFORM1IPROC, Uniform1i) \
-  FUNCLIST_DO(PFNGLUNIFORM2FPROC, Uniform2f) \
+  FUNCLIST_DO(PFNGLUNIFORM3FPROC, Uniform3f) \
   FUNCLIST_DO(PFNGLGENFRAMEBUFFERSPROC, GenFramebuffers) \
   FUNCLIST_DO(PFNGLBINDFRAMEBUFFERPROC, BindFramebuffer) \
   FUNCLIST_DO(PFNGLFRAMEBUFFERTEXTURE2DPROC, FramebufferTexture2D)
@@ -165,9 +165,8 @@ static void paint(int prog, int src_tex, int dst_fb, int time) {
 	oglUseProgram(prog);
 	glBindTexture(GL_TEXTURE_2D, src_tex);
 	oglBindFramebuffer(GL_FRAMEBUFFER, dst_fb);
-	oglUniform1i(oglGetUniformLocation(prog, "Q"), time);
-	oglUniform1i(oglGetUniformLocation(prog, "FB"), 0);
-	oglUniform2f(oglGetUniformLocation(prog, "V"), XRES, YRES);
+	oglUniform1i(oglGetUniformLocation(prog, "B"), 0);
+	oglUniform3f(oglGetUniformLocation(prog, "V"), XRES, YRES, time * 1e-3f);
 	glRects(-1, -1, 1, 1);
 }
 

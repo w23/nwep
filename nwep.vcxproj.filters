@@ -29,8 +29,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="post.glsl" />
-    <None Include="raymarch.glsl" />
     <None Include="music\4klang.inc">
       <Filter>Заголовочные файлы</Filter>
     </None>
@@ -42,5 +40,9 @@
   </ItemGroup>
   <ItemGroup>
     <Object Include="music\4klang.obj" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="post.glsl" />
+    <CustomBuild Include="raymarch.glsl" />
   </ItemGroup>
 </Project>

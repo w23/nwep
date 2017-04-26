@@ -1,6 +1,5 @@
-uniform float T;
-uniform vec2 V;
-//uniform vec3 M;
+uniform vec3 V;
+float T = V.z;
 
 const vec3 E = vec3(.0,1e-3,1.);
 const float PI = 3.14159265359;

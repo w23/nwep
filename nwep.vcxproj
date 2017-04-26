@@ -123,8 +123,36 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="music\4klang.inc" />
-    <None Include="post.glsl" />
-    <None Include="raymarch.glsl" />
+    <CustomBuild Include="post.glsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">shader_minifier.exe -o %(Filename).h --preserve-externals %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">shader_minifier.exe -o %(Filename).h --preserve-externals %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='ReleaseFastShaderDebug|Win32'">shader_minifier.exe -o %(Filename).h --preserve-externals %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='ReleaseFast|Win32'">shader_minifier.exe -o %(Filename).h --preserve-externals %(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Filename).h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Filename).h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='ReleaseFastShaderDebug|Win32'">$(Filename).h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='ReleaseFast|Win32'">$(Filename).h</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Minifying shader %(Identity) to %(Filename).h</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Minifying shader %(Identity) to %(Filename).h</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='ReleaseFastShaderDebug|Win32'">Minifying shader %(Identity) to %(Filename).h</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='ReleaseFast|Win32'">Minifying shader %(Identity) to %(Filename).h</Message>
+    </CustomBuild>
+    <CustomBuild Include="raymarch.glsl">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">shader_minifier.exe -o %(Filename).h --preserve-externals %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">shader_minifier.exe -o %(Filename).h --preserve-externals %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='ReleaseFastShaderDebug|Win32'">shader_minifier.exe -o %(Filename).h --preserve-externals %(Identity)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='ReleaseFast|Win32'">shader_minifier.exe -o %(Filename).h --preserve-externals %(Identity)</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Filename).h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Filename).h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='ReleaseFastShaderDebug|Win32'">$(Filename).h</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='ReleaseFast|Win32'">$(Filename).h</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Minifying shader %(Identity) to %(Filename).h</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Minifying shader %(Identity) to %(Filename).h</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='ReleaseFastShaderDebug|Win32'">Minifying shader %(Identity) to %(Filename).h</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='ReleaseFast|Win32'">Minifying shader %(Identity) to %(Filename).h</Message>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="nwep.c" />

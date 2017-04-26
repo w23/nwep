@@ -1,10 +1,10 @@
-uniform sampler2D FB;
-uniform vec2 V;
+uniform sampler2D B;
+uniform vec3 V;
 
 void main() {
-	vec2 uv = gl_FragCoord.xy / V, pixel = vec2(.002*V.y/V.x,.002), angle=vec2(0.,1.1), off;
+	vec2 uv = gl_FragCoord.xy / V.xy, pixel = vec2(.002*V.y/V.x,.002), angle=vec2(0.,1.1), off;
 	vec3 color = vec3(0.);
-	vec4 pix = texture2D(FB, uv), dof = vec4(pix.xyz, 1.), smpl;
+	vec4 pix = texture2D(B, uv), dof = vec4(pix.xyz, 1.), smpl;
 
 	int N = 256;
 	float focus = 4., GA = 2.4, rad = 1., r;
@@ -13,7 +13,7 @@ void main() {
 		rad += 1./rad;
 		angle*=rot;
 		off = pixel*(rad-1.)*angle;
-		smpl = texture2D(FB,uv+off);
+		smpl = texture2D(B,uv+off);
 		color += smpl.xyz;
 			r = length(off);
 			dof += step(smpl.w,pix.w)*vec4(smpl.xyz, 1.) * step(r*.01, step(r, abs(smpl.w - focus) * 1. / V.x));
