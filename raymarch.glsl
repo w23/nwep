@@ -1,4 +1,4 @@
-uniform vec3 V;
+uniform vec3 V, C, A;
 float T = V.z;
 
 const vec3 E = vec3(.0,1e-3,1.);
@@ -26,6 +26,7 @@ float noise(float p){
 	//p*=p*(3.-2.*p);
 	return mix(hash1(P), hash1(P+1.), p);
 }
+vec3 noise13(float p) { return vec3(noise(p), noise(p+13.), noise(p+29.)); }
 
 //float box2(vec2 p, vec2 s) { p = abs(p) - s; return max(p.x, p.y); }
 float box3(vec3 p, vec3 s) { p = abs(p) - s; return max(p.x, max(p.y, p.z)); }
@@ -215,15 +216,17 @@ mat3 lookat(vec3 p, vec3 a, vec3 y) {
 	return mat3(x, y, z);
 }
 
+vec3 uniToXyz(vec3 uni) { return vec3(uni.x*cos(uni.z), uni.y, uni.x*sin(uni.z)); }
+
 void main() {
 	vec2 uv = gl_FragCoord.xy / V.xy * 2. - 1.;
 	uv.x *= V.x / V.y;
-	
-	float C = 11.;
-	LP[0] = vec3(C, 6.,C);
-	LP[1] = vec3(C, 6.,-C);
-	LP[2] = vec3(-C, 6.,-C);
-	LP[3] = vec3(-C, 6.,C);
+
+	float Ldist = 11.;
+	LP[0] = vec3(Ldist, 6.,Ldist);
+	LP[1] = vec3(Ldist, 6.,-Ldist);
+	LP[2] = vec3(-Ldist, 6.,-Ldist);
+	LP[3] = vec3(-Ldist, 6.,Ldist);
 	LP[4] = vec3(0.);
 
 	LC[0] = 30.*vec3(.7,.35,.45)*mix(1.,noise(T*20.),.3);
@@ -232,39 +235,20 @@ void main() {
 	LC[3] = 30.*vec3(.7,.35,.15)*mix(1.,noise(T*20.+30.),.3);
 	LC[4] = smoothstep(44., 50., T) * 50.*vec3(1.)*mix(1.,noise(T*20.+30.),.3);
 
-	vec3 D = normalize(vec3(uv, -1.44));
+	vec3 origin = uniToXyz(C) + .1 * noise13(T*3.);
+	mat3 LAT = lookat(origin, uniToXyz(A), E.xzx);
+	//origin += LAT * vec3(uv*.01, 0.);
+	vec3 ray = LAT * normalize(vec3(uv, -1.44));
 
-	vec3 O, A = vec3(.0);
-	if (T < 23.) {
-		O = vec3(mix(40.,11.,T/23.), 2., 0.);
-	} else if (T < 34.) {
-		float t = T - 34.;
-		O = vec3(cos(t*.1)*13., 2., sin(t*.1)*14.);
-		A = vec3(20.,0.,20.);
-	} else if (T < 62.) {
-		O = vec3(cos(T*.1)*13., 2., sin(T*.1)*14.);
-	} else {
-		float t = T * 2. / 10.48;
-		float tt = floor(t);
-		O = 13.*mix(
-			vec3(noise(tt), noise(tt+4.), noise(tt+5.)),
-			vec3(noise(tt+17.), noise(tt+41.), noise(tt+35.)), t - tt);
-	}
-	float t = T * 3.;
-	O += .1 * vec3(noise(t), noise(t+1.), noise(t+3.));
-	mat3 LAT = lookat(O, A, E.xzx);
-	O += LAT * vec3(uv*.01, 0.);
-	D = LAT * D;
-
-	vec3 color = vec3(0.);//E.zxz;
+	vec3 color = E.xxx;
 	
 	const float maxl = 40.;
-	vec3 tr = trace(O, D, maxl);
-		vec3 p = O + tr.x * D;
-		vec3 albedo, em, n;
-		float metallic, roughness;
-		material(p, n, em, albedo, roughness, metallic);
-		color = em + pbf(p, -D, n, albedo, metallic, roughness);
+	vec3 tr = trace(origin, ray, maxl);
+	vec3 p = origin + tr.x * ray;
+	vec3 albedo, em, n;
+	float metallic, roughness;
+	material(p, n, em, albedo, roughness, metallic);
+	color = em + pbf(p, -ray, n, albedo, metallic, roughness);
 
 	gl_FragColor = vec4(color, tr.x);
 }

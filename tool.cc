@@ -13,6 +13,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <cstring>
 
 class FileChangePoller {
 	const std::string filename_;
@@ -33,8 +34,6 @@ public:
 				st.st_mtim.tv_nsec == mtime_.tv_nsec)
 			return content;
 
-		aAppDebugPrintf("Updating..");
-
 		mtime_ = st.st_mtim;
 
 		int fd = open(filename_.c_str(), O_RDONLY);
@@ -50,6 +49,8 @@ public:
 			content.resize(0);
 			return content;
 		}
+
+		aAppDebugPrintf("Reread file %s", filename_.c_str());
 
 		close(fd);
 		return content;
@@ -89,7 +90,7 @@ class Program {
 
 public:
 	const AGLProgram& program() const { return program_; }
-	Program(String &vtx, String &frg) : vertex_src_(vtx), fragment_src_(frg) {}
+	Program(String &vtx, String &frg) : vertex_src_(vtx), fragment_src_(frg), program_(0) {}
 
 	bool update() {
 		if (vertex_src_.update() || fragment_src_.update()) {
@@ -122,6 +123,9 @@ class Intro {
 	ATimeUs time_, last_frame_time_;
 	ATimeUs loop_a_, loop_b_;
 
+	float cam_r_, cam_y_, cam_axz_;
+	float at_r_, at_y_, at_axz_;
+
 	AVec3f mouse;
 
 	int frame_width, frame_height;
@@ -135,13 +139,14 @@ class Intro {
 	Program out_prg;
 
 	enum {
-		FbTex_Random = 1,
+		FbTex_None,
+		FbTex_Random,
 		FbTex_Ray,
 		FbTex_Frame,
 		FbTex_COUNT
 	};
-	GLuint tex[FbTex_COUNT];
-	GLuint fb[FbTex_COUNT];
+	GLuint tex_[FbTex_COUNT];
+	GLuint fb_[FbTex_COUNT];
 
 	static void createTexture(GLint t, int w, int h)
 	{
@@ -154,16 +159,18 @@ class Intro {
 	}
 
 public:
-	Intro()
+	Intro(int width, int height)
 		: paused_(0)
 		, time_end_(150 * 1000000)
 		, time_(0)
 		, last_frame_time_(0)
 		, loop_a_(0)
 		, loop_b_(time_end_)
+		, cam_r_(40.f), cam_y_(2.f), cam_axz_(0.f)
+		, at_r_(0.f), at_y_(0.f), at_axz_(0.f)
 		, mouse(aVec3ff(0))
-		, frame_width(1280)
-		, frame_height(720)
+		, frame_width(width)
+		, frame_height(height)
 		, fs_vtx(fs_vtx_source)
 		, raymarch_src("raymarch.glsl")
 		, raymarch_prg(fs_vtx, raymarch_src)
@@ -172,22 +179,42 @@ public:
 		, out_src("out.glsl")
 		, out_prg(fs_vtx, out_src)
 	{
-		glGenTextures(FbTex_COUNT, tex);
-		glGenFramebuffers(FbTex_COUNT, fb);
+		tex_[0] = fb_[0] = 0;
+		AGL__CALL(glGenTextures(FbTex_COUNT-1, tex_ + 1));
+		AGL__CALL(glGenFramebuffers(FbTex_COUNT-1, fb_ + 1));
 
-		for (int i = 0; i < FbTex_COUNT; ++i) aAppDebugPrintf("tex[%d] = %u; fb[%d] = %u;", i, tex[i], i, fb[i]);
+		for (int i = 0; i < FbTex_COUNT; ++i)
+			aAppDebugPrintf("tex_[%d] = %u; fb_[%d] = %u;", i, tex_[i], i, fb_[i]);
 
-		createTexture(FbTex_Ray, frame_width, frame_height);
-		AGL__CALL(glBindFramebuffer(GL_FRAMEBUFFER, FbTex_Ray));
-		AGL__CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, FbTex_Ray, 0));
+		createTexture(tex_[FbTex_Ray], frame_width, frame_height);
+		AGL__CALL(glBindFramebuffer(GL_FRAMEBUFFER, fb_[FbTex_Ray]));
+		AGL__CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_[FbTex_Ray], 0));
 		int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 		ATTO_ASSERT(status == GL_FRAMEBUFFER_COMPLETE);
 
-		createTexture(FbTex_Frame, frame_width, frame_height);
-		AGL__CALL(glBindFramebuffer(GL_FRAMEBUFFER, FbTex_Frame));
-		AGL__CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, FbTex_Frame, 0));
+		createTexture(tex_[FbTex_Frame], frame_width, frame_height);
+		AGL__CALL(glBindFramebuffer(GL_FRAMEBUFFER, fb_[FbTex_Frame]));
+		AGL__CALL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex_[FbTex_Frame], 0));
 		status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 		ATTO_ASSERT(status == GL_FRAMEBUFFER_COMPLETE);
+	}
+
+	void drawPass(float now, int tex, int prog, int fb) {
+		AGL__CALL(glBindTexture(GL_TEXTURE_2D, tex));
+		AGL__CALL(glUseProgram(prog));
+		AGL__CALL(glBindFramebuffer(GL_FRAMEBUFFER, fb));
+		if (fb > 0) {
+			AGL__CALL(glViewport(0, 0, frame_width, frame_height));
+			AGL__CALL(glUniform3f(glGetUniformLocation(prog, "V"), frame_width, frame_height, now));
+		} else {
+			AGL__CALL(glViewport(0, 0, a_app_state->width, a_app_state->height));
+			AGL__CALL(glUniform3f(glGetUniformLocation(prog, "V"), a_app_state->width, a_app_state->height, now));
+		}
+		AGL__CALL(glUniform1i(glGetUniformLocation(prog, "B"), 0));
+		AGL__CALL(glUniform3f(glGetUniformLocation(prog, "C"), cam_r_, cam_y_, cam_axz_));
+		AGL__CALL(glUniform3f(glGetUniformLocation(prog, "A"), at_r_, at_y_, at_axz_));
+		AGL__CALL(glUniform1f(glGetUniformLocation(prog, "TPCT"), (float)time_ / (float)time_end_));
+		AGL__CALL(glRects(-1,-1,1,1));
 	}
 
 	void paint(ATimeUs ts) {
@@ -201,41 +228,15 @@ public:
 
 		const float now = 1e-6f * time_;
 
+		cam_r_ = 20.f + sinf(now*.1f) * 18.f;
+
 		raymarch_prg.update();
 		post_prg.update();
 		out_prg.update();
 
-		AGL__CALL(glBindTexture(GL_TEXTURE_2D, 0));
-		AGL__CALL(glBindFramebuffer(GL_FRAMEBUFFER, FbTex_Ray));
-		AGL__CALL(glViewport(0, 0, frame_width, frame_height));
-		AGL__CALL(glUseProgram(raymarch_prg.program()));
-		AGL__CALL(glUniform1f(glGetUniformLocation(raymarch_prg.program(), "T"), now));
-		AGL__CALL(glUniform1f(glGetUniformLocation(raymarch_prg.program(), "TPCT"), (float)time_ / (float)time_end_));
-		AGL__CALL(glUniform2f(glGetUniformLocation(raymarch_prg.program(), "V"), frame_width, frame_height));
-		AGL__CALL(glUniform3f(glGetUniformLocation(raymarch_prg.program(), "M"), mouse.x, mouse.y, mouse.z));
-		AGL__CALL(glRects(-1,-1,1,1));
-
-		AGL__CALL(glBindTexture(GL_TEXTURE_2D, FbTex_Ray));
-		AGL__CALL(glBindFramebuffer(GL_FRAMEBUFFER, FbTex_Frame));
-		AGL__CALL(glViewport(0, 0, frame_width, frame_height));
-		AGL__CALL(glUseProgram(post_prg.program()));
-		AGL__CALL(glUniform1i(glGetUniformLocation(post_prg.program(), "FB"), 0));
-		AGL__CALL(glUniform1f(glGetUniformLocation(post_prg.program(), "T"), now));
-		AGL__CALL(glUniform1f(glGetUniformLocation(post_prg.program(), "TPCT"), (float)time_ / (float)time_end_));
-		AGL__CALL(glUniform2f(glGetUniformLocation(post_prg.program(), "V"), frame_width, frame_height));
-		AGL__CALL(glUniform3f(glGetUniformLocation(post_prg.program(), "M"), mouse.x, mouse.y, mouse.z));
-		AGL__CALL(glRects(-1,-1,1,1));
-
-		AGL__CALL(glBindTexture(GL_TEXTURE_2D, FbTex_Frame));
-		AGL__CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-		AGL__CALL(glViewport(0, 0, a_app_state->width, a_app_state->height));
-		AGL__CALL(glUseProgram(out_prg.program()));
-		AGL__CALL(glUniform1i(glGetUniformLocation(out_prg.program(), "FB"), 0));
-		AGL__CALL(glUniform1f(glGetUniformLocation(out_prg.program(), "T"), now));
-		AGL__CALL(glUniform1f(glGetUniformLocation(out_prg.program(), "TPCT"), (float)time_ / (float)time_end_));
-		AGL__CALL(glUniform2f(glGetUniformLocation(out_prg.program(), "V"), a_app_state->width, a_app_state->height));
-		AGL__CALL(glUniform3f(glGetUniformLocation(out_prg.program(), "M"), mouse.x, mouse.y, mouse.z));
-		AGL__CALL(glRects(-1,-1,1,1));
+		drawPass(now, 0, raymarch_prg.program(), FbTex_Ray);
+		drawPass(now, FbTex_Ray, post_prg.program(), FbTex_Frame);
+		drawPass(now, FbTex_Frame, out_prg.program(), 0);
 	}
 
 	void adjustTime(int delta) {
@@ -292,5 +293,14 @@ void attoAppInit(struct AAppProctable *ptbl) {
 	ptbl->pointer = pointer;
 	ptbl->paint = paint;
 
-	intro.reset(new Intro());
+	int width = 1280, height = 720;
+	for (int iarg = 1; iarg < a_app_state->argc; ++iarg) {
+		const char *argv = a_app_state->argv[iarg];
+		if (strcmp(argv, "-w") == 0)
+			width = atoi(a_app_state->argv[++iarg]);
+		else if (strcmp(argv, "-h") == 0)
+			height = atoi(a_app_state->argv[++iarg]);
+	}
+
+	intro.reset(new Intro(width, height));
 }
