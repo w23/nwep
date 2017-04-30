@@ -6,10 +6,21 @@
 #include <mmsystem.h>
 #include <mmreg.h>
 #include <GL/gl.h>
+#if defined(_DEBUG) || defined(CAPTURE)
+#include <stdio.h>
+#endif
 
 #define XRES 1280
 #define YRES 720
 #define INTRO_LENGTH 130*1000
+
+#ifdef CAPTURE
+#define LOL(x) #x
+#define STR(x) LOL(x)
+#define FFMPEG_CAPTURE_INPUT "ffmpeg.exe -y -f rawvideo -vcodec rawvideo -s "\
+	STR(XRES) "x" STR(YRES) " -pix_fmt rgb24 -framerate 60 -i - "\
+	"-c:v libx264 -crf 18 -preset slow -vf vflip capture_" STR(XRES) "x" STR(YRES) ".mp4"
+#endif
 
 #pragma data_seg(".raymarch.glsl")
 #include "raymarch.h"
@@ -72,6 +83,10 @@ static const DEVMODE screenSettings = { {0},
 
 #pragma data_seg(".soundbuffer")
 static SAMPLE_TYPE lpSoundBuffer[MAX_SAMPLES * 2];
+
+#ifdef CAPTURE
+static GLubyte backbufferData[XRES*YRES * 3];
+#endif
 
 #pragma data_seg(".wavefmt")
 static const WAVEFORMATEX WaveFMT =
@@ -216,6 +231,10 @@ void entrypoint( void )
 	waveOutWrite(hWaveOut, &WaveHDR, sizeof(WaveHDR));
 	const int to = timeGetTime();
 
+#ifdef CAPTURE
+	FILE* captureStream = _popen(FFMPEG_CAPTURE_INPUT, "wb");
+#endif
+
 	// play intro
 	do 
 	{
@@ -225,6 +244,12 @@ void entrypoint( void )
 		paint(p_ray, 0, fb[FbTex_Ray], time);
 		paint(p_dof, tex[FbTex_Ray], 0, time);
 		SwapBuffers(hDC);
+
+#ifdef CAPTURE
+		glReadPixels(0, 0, XRES, YRES, GL_RGB, GL_UNSIGNED_BYTE, backbufferData);
+		fwrite(backbufferData, 1, XRES*YRES * 3, captureStream);
+		fflush(captureStream);
+#endif
 
 		/* hide cursor properly */
 		PeekMessageA(0, 0, 0, 0, PM_REMOVE);
@@ -237,6 +262,10 @@ void entrypoint( void )
 	ChangeDisplaySettings( 0, 0 );
 	ShowCursor(1);
 	#endif
+
+#ifdef CAPTURE
+	fclose(fflush);
+#endif
 
 	ExitProcess(0);
 }
