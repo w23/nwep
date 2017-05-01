@@ -216,8 +216,6 @@ mat3 lookat(vec3 p, vec3 a, vec3 y) {
 	return mat3(x, y, z);
 }
 
-vec3 uniToXyz(vec3 uni) { return vec3(uni.x*cos(uni.z), uni.y, uni.x*sin(uni.z)); }
-
 void main() {
 	vec2 uv = gl_FragCoord.xy / V.xy * 2. - 1.;
 	uv.x *= V.x / V.y;
@@ -235,8 +233,8 @@ void main() {
 	LC[3] = 30.*vec3(.7,.35,.15)*mix(1.,noise(T*20.+30.),.3);
 	LC[4] = smoothstep(44., 50., T) * 50.*vec3(1.)*mix(1.,noise(T*20.+30.),.3);
 
-	vec3 origin = uniToXyz(C) + .1 * noise13(T*3.);
-	mat3 LAT = lookat(origin, uniToXyz(A), E.xzx);
+	vec3 origin = C + .1 * noise13(T*3.);
+	mat3 LAT = lookat(origin, A, E.xzx);
 	//origin += LAT * vec3(uv*.01, 0.);
 	vec3 ray = LAT * normalize(vec3(uv, -1.44));
 
