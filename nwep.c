@@ -2,6 +2,14 @@
 #define WIN32_EXTRA_LEAN
 #define VC_LEANMEAN
 #define VC_EXTRALEAN
+#ifdef _DEBUG
+#ifdef FULLSCREEN
+#undef FULLSCREEN
+#endif
+#define DEBUG_FUNCLOAD
+#define SHADER_DEBUG
+#endif
+
 #include <windows.h>
 #include <mmsystem.h>
 #include <mmreg.h>
@@ -21,7 +29,7 @@
 
 #include "glext.h"
 
-#if 0
+#ifdef NO_CREATESHADERPROGRAMV
 FUNCLIST_DO(PFNGLCREATESHADERPROC, CreateShader) \
 FUNCLIST_DO(PFNGLSHADERSOURCEPROC, ShaderSource) \
 FUNCLIST_DO(PFNGLCOMPILESHADERPROC, CompileShader) \
@@ -29,6 +37,7 @@ FUNCLIST_DO(PFNGLCREATEPROGRAMPROC, CreateProgram) \
 FUNCLIST_DO(PFNGLATTACHSHADERPROC, AttachShader) \
 FUNCLIST_DO(PFNGLLINKPROGRAMPROC, LinkProgram)
 #endif
+
 #define FUNCLIST \
   FUNCLIST_DO(PFNGLCREATESHADERPROGRAMVPROC, CreateShaderProgramv) \
   FUNCLIST_DO(PFNGLUSEPROGRAMPROC, UseProgram) \
@@ -47,8 +56,10 @@ FUNCLIST_DO(PFNGLLINKPROGRAMPROC, LinkProgram)
   FUNCLIST_DO(PFNGLCHECKFRAMEBUFFERSTATUSPROC, CheckFramebufferStatus)
 #endif
 
+#ifdef _DEBUG
 //#pragma data_seg(".fltused")
-//*extern "C" {*/ int _fltused = 1; /*}*/
+/*extern "C" {*/ int _fltused = 1; /*}*/
+#endif
 
 #pragma data_seg(".pfd")
 static const PIXELFORMATDESCRIPTOR pfd = {
@@ -109,7 +120,7 @@ FUNCLIST FUNCLIST_DBG
 
 #pragma code_seg(".compileProgram")
 static __inline int compileProgram(const char *fragment) {
-#if 0
+#ifdef NO_CREATESHADERPROGRAMV
 	const int pid = oglCreateProgram();
 	const int fsId = oglCreateShader(GL_FRAGMENT_SHADER);
 	oglShaderSource(fsId, 1, &fragment, 0);
@@ -171,6 +182,8 @@ static void paint(int prog, int src_tex, int dst_fb, int time) {
 	oglBindFramebuffer(GL_FRAMEBUFFER, dst_fb);
 	oglUniform1i(oglGetUniformLocation(prog, "B"), 0);
 	oglUniform3f(oglGetUniformLocation(prog, "V"), XRES, YRES, time * 1e-3f);
+	oglUniform3f(oglGetUniformLocation(prog, "C"), 20., 0., 0.);
+	oglUniform3f(oglGetUniformLocation(prog, "A"), 0., 0., 0.);
 	glRects(-1, -1, 1, 1);
 }
 
@@ -192,7 +205,14 @@ void entrypoint( void )
 	SetPixelFormat(hDC,ChoosePixelFormat(hDC,&pfd),&pfd);
 	wglMakeCurrent(hDC,wglCreateContext(hDC));
 	
+#ifdef DEBUG_FUNCLOAD
+#define FUNCLIST_DO(T, N) ogl##N = (T)wglGetProcAddress("gl" # N); \
+	if (!ogl##N) { \
+		MessageBox(NULL, gl # N, "wglGetProcAddress", 0x00000000L); \
+	}
+#else
 #define FUNCLIST_DO(T, N) ogl##N = (T)wglGetProcAddress("gl" # N);
+#endif
 	FUNCLIST FUNCLIST_DBG
 #undef FUNCLIST_DO
 
