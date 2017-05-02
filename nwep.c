@@ -23,6 +23,9 @@
 #include <mmsystem.h>
 #include <mmreg.h>
 #include <GL/gl.h>
+#if defined(_DEBUG) || defined(CAPTURE)
+#include <stdio.h>
+#endif
 
 #ifdef _DEBUG
 //#pragma data_seg(".fltused")
@@ -49,6 +52,16 @@ int _fltused = 1;
 
 #include "music/4klang.h"
 #define INTRO_LENGTH (1000 * MAX_SAMPLES / SAMPLE_RATE)
+
+#ifdef CAPTURE
+#define CAPTURE_FRAMERATE 60
+#define LOL(x) #x
+#define STR(x) LOL(x)
+#define FFMPEG_CAPTURE_INPUT "ffmpeg.exe -y -f rawvideo -vcodec rawvideo -s "\
+	STR(XRES) "x" STR(YRES) " -pix_fmt rgb24 -framerate " STR(CAPTURE_FRAMERATE)\
+	" -i - -c:v libx264 -crf 18 -preset slow -vf vflip "\
+	"capture_" STR(XRES) "x" STR(YRES) ".mp4"
+#endif
 
 #pragma data_seg(".raymarch.glsl")
 #include "raymarch.h"
@@ -143,6 +156,10 @@ static const DEVMODE screenSettings = { {0},
 	#endif
 	#endif
 	};
+
+#ifdef CAPTURE
+static GLubyte backbufferData[XRES*YRES * 3];
+#endif
 
 #pragma data_seg(".wavefmt")
 static const WAVEFORMATEX WaveFMT =
@@ -289,6 +306,9 @@ void entrypoint( void ) {
 
 	introInit();
 
+#ifdef CAPTURE
+	FILE* captureStream = _popen(FFMPEG_CAPTURE_INPUT, "wb");
+#else
 	// initialize sound
 	HWAVEOUT hWaveOut;
 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)_4klang_render, lpSoundBuffer, 0, 0);
@@ -296,14 +316,28 @@ void entrypoint( void ) {
 	waveOutOpen(&hWaveOut, WAVE_MAPPER, &WaveFMT, NULL, 0, CALLBACK_NULL);
 	waveOutPrepareHeader(hWaveOut, &WaveHDR, sizeof(WaveHDR));
 	waveOutWrite(hWaveOut, &WaveHDR, sizeof(WaveHDR));
+#endif
+
 	const int to = timeGetTime();
 
 	// play intro
 	do {
 		//waveOutGetPosition(hWaveOut, &MMTime, sizeof(MMTIME));
+#ifdef CAPTURE
+		static int time = 0;
+		time += (long)(1000. / CAPTURE_FRAMERATE);
+#else
 		const int time = timeGetTime() - to;
+#endif
 		introPaint(time / 1000.f);
 		SwapBuffers(hDC);
+
+#ifdef CAPTURE
+		glReadPixels(0, 0, XRES, YRES, GL_RGB, GL_UNSIGNED_BYTE, backbufferData);
+		fwrite(backbufferData, 1, XRES*YRES * 3, captureStream);
+		fflush(captureStream);
+#endif
+
 		/* hide cursor properly */
 		PeekMessageA(0, 0, 0, 0, PM_REMOVE);
 		if (time > INTRO_LENGTH) break;
@@ -315,6 +349,10 @@ void entrypoint( void ) {
 	ChangeDisplaySettings( 0, 0 );
 	ShowCursor(1);
 	#endif
+
+#ifdef CAPTURE
+	fclose(captureStream);
+#endif
 
 	ExitProcess(0);
 }
