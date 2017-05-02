@@ -1,5 +1,9 @@
+#ifndef XRES
 #define XRES 1280
+#endif
+#ifndef YRES
 #define YRES 720
+#endif
 
 #ifdef _DEBUG
 #ifdef FULLSCREEN
@@ -52,8 +56,34 @@ int _fltused = 1;
 #pragma data_seg(".post.glsl")
 #include "post.h"
 
-#pragma data_sef(".timeline.h")
+#pragma data_seg(".timeline.h")
 #include "timeline.h"
+
+#pragma data_seg(".timeline_unpacked")
+static float TV[TIMELINE_ROWS];
+
+#pragma code_seg(".timeline_updater")
+static __inline void timelineUpdate(float time) {
+	int i, j;
+	for (i = 1; i < TIMELINE_ROWS; ++i) {
+		const float dt = timeline_times[i] * .1f;
+		//printf("%.2f: [i=%d; dt=%.2f, t=%.2f] ", time, i, dt, time/dt);
+		if (dt >= time) {
+			time /= dt;
+			break;
+		}
+		time -= dt;
+	}
+
+	for (j = 0; j < TIMELINE_COLS; ++j) {
+		const float r = timeline_ranges[j];
+		const float a = timeline_values[i + j * TIMELINE_ROWS - 1];
+		const float b = timeline_values[i + j * TIMELINE_ROWS];
+		TV[j] = ((a + (b - a) * time) / 255.f * 2.f - 1.f) * r;
+		//printf("%.2f ", TV[j]);
+	}
+	//printf("\n");
+}
 
 #ifdef NO_CREATESHADERPROGRAMV
 FUNCLIST_DO(PFNGLCREATESHADERPROC, CreateShader) \
@@ -136,9 +166,7 @@ static MMTIME MMTime =
 	TIME_SAMPLES, 0
 };
 */
-#elif defined(__linux__)
-#endif
-
+#endif /* _WIN32 */
 
 #pragma data_seg(".static")
 static SAMPLE_TYPE lpSoundBuffer[MAX_SAMPLES * 2];
@@ -204,18 +232,18 @@ static __inline void initFbTex(int fb, int tex) {
 	oglFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
 }
 
-static void paint(int prog, int src_tex, int dst_fb, int time) {
+static void paint(int prog, int src_tex, int dst_fb, float time) {
 	oglUseProgram(prog);
 	glBindTexture(GL_TEXTURE_2D, src_tex);
 	oglBindFramebuffer(GL_FRAMEBUFFER, dst_fb);
 	oglUniform1i(oglGetUniformLocation(prog, "B"), 0);
-	oglUniform3f(oglGetUniformLocation(prog, "V"), XRES, YRES, time * 1e-3f);
-	oglUniform3f(oglGetUniformLocation(prog, "C"), 20., 0., 0.);
-	oglUniform3f(oglGetUniformLocation(prog, "A"), 0., 0., 0.);
+	oglUniform3f(oglGetUniformLocation(prog, "V"), (float)XRES, (float)YRES, time);
+	oglUniform3f(oglGetUniformLocation(prog, "C"), TV[0], TV[1], TV[2]);
+	oglUniform3f(oglGetUniformLocation(prog, "A"), TV[3], TV[4], TV[5]);
 	glRects(-1, -1, 1, 1);
 }
 
-static __inline void intro_init() {
+static __inline void introInit() {
 	p_ray = compileProgram(raymarch_glsl);
 	p_dof = compileProgram(post_glsl);
 	//const int p_out = compileProgram(out_glsl);
@@ -227,7 +255,8 @@ static __inline void intro_init() {
 	//initFbTex(tex[FbTex_Dof], fb[FbTex_Dof]);
 }
 
-static __inline void intro_paint(int time) {
+static __inline void introPaint(float time) {
+	timelineUpdate(time);
 	paint(p_ray, 0, fb[FbTex_Ray], time);
 	paint(p_dof, tex[FbTex_Ray], 0, time);
 }
@@ -258,7 +287,7 @@ void entrypoint( void ) {
 	FUNCLIST FUNCLIST_DBG
 #undef FUNCLIST_DO
 
-	intro_init();
+	introInit();
 
 	// initialize sound
 	HWAVEOUT hWaveOut;
@@ -273,7 +302,7 @@ void entrypoint( void ) {
 	do {
 		//waveOutGetPosition(hWaveOut, &MMTime, sizeof(MMTIME));
 		const int time = timeGetTime() - to;
-		intro_paint(time);
+		introPaint(time / 1000.f);
 		SwapBuffers(hDC);
 		/* hide cursor properly */
 		PeekMessageA(0, 0, 0, 0, PM_REMOVE);
@@ -298,12 +327,13 @@ void main() {
 	SDL_Init(SDL_INIT_VIDEO);
 	SDL_SetVideoMode(XRES, YRES, 32, SDL_OPENGL);
 	glViewport(0, 0, XRES, YRES);
-	intro_init();
+	introInit();
+	uint32_t start = SDL_GetTicks();
 	for(;;) {
 		SDL_Event e;
 		SDL_PollEvent(&e);
-		if (e.type == SDL_KEYDOWN) break;
-		intro_paint(SDL_GetTicks());
+		if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE) break;
+		introPaint((SDL_GetTicks() - start) / 1000.f);
 		SDL_GL_SwapBuffers();
 	}
 /*
