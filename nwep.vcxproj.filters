@@ -27,6 +27,9 @@
     <ClInclude Include="music\4klang.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
+    <ClInclude Include="timeline.h">
+      <Filter>Заголовочные файлы</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="music\4klang.inc">
@@ -44,5 +47,6 @@
   <ItemGroup>
     <CustomBuild Include="post.glsl" />
     <CustomBuild Include="raymarch.glsl" />
+    <CustomBuild Include="timeline.seq" />
   </ItemGroup>
 </Project>

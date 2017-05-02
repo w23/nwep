@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nwep", "nwep.vcxproj", "{4697D2A5-0BA3-4305-960C-C1405D38894A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "timepack", "timepack.vcxproj", "{AE72AEE9-DF77-44BF-9D06-D43694780EC8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,26 @@ Global
 		{4697D2A5-0BA3-4305-960C-C1405D38894A}.ReleaseFastShaderDebug|x64.Build.0 = ReleaseFastShaderDebug|Win32
 		{4697D2A5-0BA3-4305-960C-C1405D38894A}.ReleaseFastShaderDebug|x86.ActiveCfg = ReleaseFastShaderDebug|Win32
 		{4697D2A5-0BA3-4305-960C-C1405D38894A}.ReleaseFastShaderDebug|x86.Build.0 = ReleaseFastShaderDebug|Win32
+		{AE72AEE9-DF77-44BF-9D06-D43694780EC8}.Debug|x64.ActiveCfg = Debug|x64
+		{AE72AEE9-DF77-44BF-9D06-D43694780EC8}.Debug|x64.Build.0 = Debug|x64
+		{AE72AEE9-DF77-44BF-9D06-D43694780EC8}.Debug|x86.ActiveCfg = Debug|Win32
+		{AE72AEE9-DF77-44BF-9D06-D43694780EC8}.Debug|x86.Build.0 = Debug|Win32
+		{AE72AEE9-DF77-44BF-9D06-D43694780EC8}.Release|x64.ActiveCfg = Release|x64
+		{AE72AEE9-DF77-44BF-9D06-D43694780EC8}.Release|x64.Build.0 = Release|x64
+		{AE72AEE9-DF77-44BF-9D06-D43694780EC8}.Release|x86.ActiveCfg = Release|Win32
+		{AE72AEE9-DF77-44BF-9D06-D43694780EC8}.Release|x86.Build.0 = Release|Win32
+		{AE72AEE9-DF77-44BF-9D06-D43694780EC8}.ReleaseCrinkler|x64.ActiveCfg = Release|x64
+		{AE72AEE9-DF77-44BF-9D06-D43694780EC8}.ReleaseCrinkler|x64.Build.0 = Release|x64
+		{AE72AEE9-DF77-44BF-9D06-D43694780EC8}.ReleaseCrinkler|x86.ActiveCfg = Release|Win32
+		{AE72AEE9-DF77-44BF-9D06-D43694780EC8}.ReleaseCrinkler|x86.Build.0 = Release|Win32
+		{AE72AEE9-DF77-44BF-9D06-D43694780EC8}.ReleaseFast|x64.ActiveCfg = Release|x64
+		{AE72AEE9-DF77-44BF-9D06-D43694780EC8}.ReleaseFast|x64.Build.0 = Release|x64
+		{AE72AEE9-DF77-44BF-9D06-D43694780EC8}.ReleaseFast|x86.ActiveCfg = Release|Win32
+		{AE72AEE9-DF77-44BF-9D06-D43694780EC8}.ReleaseFast|x86.Build.0 = Release|Win32
+		{AE72AEE9-DF77-44BF-9D06-D43694780EC8}.ReleaseFastShaderDebug|x64.ActiveCfg = Release|x64
+		{AE72AEE9-DF77-44BF-9D06-D43694780EC8}.ReleaseFastShaderDebug|x64.Build.0 = Release|x64
+		{AE72AEE9-DF77-44BF-9D06-D43694780EC8}.ReleaseFastShaderDebug|x86.ActiveCfg = Release|Win32
+		{AE72AEE9-DF77-44BF-9D06-D43694780EC8}.ReleaseFastShaderDebug|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

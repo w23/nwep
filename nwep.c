@@ -33,7 +33,7 @@ int _fltused = 1;
 #include <GL/gl.h>
 
 #define __stdcall
-#define __inline inline __attribute__((always_inline))
+#define __forceinline inline __attribute__((always_inline))
 
 #define oglCreateShaderProgramv glCreateShaderProgramv
 #define oglGenFramebuffers glGenFramebuffers
@@ -63,7 +63,7 @@ int _fltused = 1;
 static float TV[TIMELINE_ROWS];
 
 #pragma code_seg(".timeline_updater")
-static __inline void timelineUpdate(float time) {
+static __forceinline void timelineUpdate(float time) {
 	int i, j;
 	for (i = 1; i < TIMELINE_ROWS; ++i) {
 		const float dt = timeline_times[i] * .1f;
@@ -111,6 +111,12 @@ FUNCLIST_DO(PFNGLLINKPROGRAMPROC, LinkProgram)
   FUNCLIST_DO(PFNGLGETSHADERINFOLOGPROC, GetShaderInfoLog) \
   FUNCLIST_DO(PFNGLCHECKFRAMEBUFFERSTATUSPROC, CheckFramebufferStatus)
 #endif
+
+#pragma data_seg(".static")
+static SAMPLE_TYPE lpSoundBuffer[MAX_SAMPLES * 2];
+static int p_ray, p_dof;
+enum { FbTex_Ray, FbTex_COUNT };
+static GLuint tex[FbTex_COUNT], fb[FbTex_COUNT];
 
 #ifdef _WIN32
 #pragma data_seg(".glfuncs")
@@ -168,14 +174,8 @@ static MMTIME MMTime =
 */
 #endif /* _WIN32 */
 
-#pragma data_seg(".static")
-static SAMPLE_TYPE lpSoundBuffer[MAX_SAMPLES * 2];
-static int p_ray, p_dof;
-enum { FbTex_Ray, FbTex_COUNT };
-static GLuint tex[FbTex_COUNT], fb[FbTex_COUNT];
-
 #pragma code_seg(".compileProgram")
-static __inline int compileProgram(const char *fragment) {
+static __forceinline int compileProgram(const char *fragment) {
 #ifdef NO_CREATESHADERPROGRAMV
 	const int pid = oglCreateProgram();
 	const int fsId = oglCreateShader(GL_FRAGMENT_SHADER);
@@ -221,7 +221,7 @@ static __inline int compileProgram(const char *fragment) {
 	return pid;
 }
 
-static __inline void initFbTex(int fb, int tex) {
+static __forceinline void initFbTex(int fb, int tex) {
 	glBindTexture(GL_TEXTURE_2D, tex);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, XRES, YRES, 0, GL_RGBA, GL_FLOAT, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -243,7 +243,7 @@ static void paint(int prog, int src_tex, int dst_fb, float time) {
 	glRects(-1, -1, 1, 1);
 }
 
-static __inline void introInit() {
+static __forceinline void introInit() {
 	p_ray = compileProgram(raymarch_glsl);
 	p_dof = compileProgram(post_glsl);
 	//const int p_out = compileProgram(out_glsl);
@@ -255,7 +255,7 @@ static __inline void introInit() {
 	//initFbTex(tex[FbTex_Dof], fb[FbTex_Dof]);
 }
 
-static __inline void introPaint(float time) {
+static __forceinline void introPaint(float time) {
 	timelineUpdate(time);
 	paint(p_ray, 0, fb[FbTex_Ray], time);
 	paint(p_dof, tex[FbTex_Ray], 0, time);

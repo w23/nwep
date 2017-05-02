@@ -120,6 +120,7 @@
     <ClInclude Include="music\4klang.h" />
     <ClInclude Include="post.h" />
     <ClInclude Include="raymarch.h" />
+    <ClInclude Include="timeline.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="music\4klang.inc" />
@@ -160,6 +161,25 @@
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='ReleaseFastShaderDebug|Win32'">false</LinkObjects>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='ReleaseFast|Win32'">false</LinkObjects>
+    </CustomBuild>
+    <CustomBuild Include="timeline.seq">
+      <FileType>Document</FileType>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='ReleaseFast|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">timepack.exe %(Identity) %(Filename).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">timepack.exe %(Identity) %(Filename).h</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">timepack.exe %(Identity) %(Filename).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">timepack.exe %(Identity) %(Filename).h</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='ReleaseFastShaderDebug|Win32'">timepack.exe %(Identity) %(Filename).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='ReleaseFastShaderDebug|Win32'">timepack.exe %(Identity) %(Filename).h</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='ReleaseFastShaderDebug|Win32'">%(Filename).h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='ReleaseFastShaderDebug|Win32'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='ReleaseFast|Win32'">timepack.exe %(Identity) %(Filename).h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='ReleaseFast|Win32'">timepack.exe %(Identity) %(Filename).h</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='ReleaseFast|Win32'">%(Filename).h</Outputs>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
