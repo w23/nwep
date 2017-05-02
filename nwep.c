@@ -15,11 +15,13 @@
 #define INTRO_LENGTH 130*1000
 
 #ifdef CAPTURE
+#define CAPTURE_FRAMERATE 60
 #define LOL(x) #x
 #define STR(x) LOL(x)
 #define FFMPEG_CAPTURE_INPUT "ffmpeg.exe -y -f rawvideo -vcodec rawvideo -s "\
-	STR(XRES) "x" STR(YRES) " -pix_fmt rgb24 -framerate 60 -i - "\
-	"-c:v libx264 -crf 18 -preset slow -vf vflip capture_" STR(XRES) "x" STR(YRES) ".mp4"
+	STR(XRES) "x" STR(YRES) " -pix_fmt rgb24 -framerate " STR(CAPTURE_FRAMERATE)\
+	" -i - -c:v libx264 -crf 18 -preset slow -vf vflip "\
+	"capture_" STR(XRES) "x" STR(YRES) ".mp4"
 #endif
 
 #pragma data_seg(".raymarch.glsl")
@@ -222,6 +224,9 @@ void entrypoint( void )
 	initFbTex(tex[FbTex_Ray], fb[FbTex_Ray]);
 	//initFbTex(tex[FbTex_Dof], fb[FbTex_Dof]);
 
+#ifdef CAPTURE
+	FILE* captureStream = _popen(FFMPEG_CAPTURE_INPUT, "wb");
+#else
 	// initialize sound
 	HWAVEOUT hWaveOut;
 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)_4klang_render, lpSoundBuffer, 0, 0);
@@ -229,18 +234,21 @@ void entrypoint( void )
 	waveOutOpen(&hWaveOut, WAVE_MAPPER, &WaveFMT, NULL, 0, CALLBACK_NULL);
 	waveOutPrepareHeader(hWaveOut, &WaveHDR, sizeof(WaveHDR));
 	waveOutWrite(hWaveOut, &WaveHDR, sizeof(WaveHDR));
-	const int to = timeGetTime();
-
-#ifdef CAPTURE
-	FILE* captureStream = _popen(FFMPEG_CAPTURE_INPUT, "wb");
 #endif
+
+	const int to = timeGetTime();
 
 	// play intro
 	do 
 	{
 		//waveOutGetPosition(hWaveOut, &MMTime, sizeof(MMTIME));
 		//const float time = (timeGetTime() - to) * 1e-3f;
+#ifdef CAPTURE
+		static int time = 0;
+		time += (long)(1000. / CAPTURE_FRAMERATE);
+#else
 		const int time = timeGetTime() - to;
+#endif
 		paint(p_ray, 0, fb[FbTex_Ray], time);
 		paint(p_dof, tex[FbTex_Ray], 0, time);
 		SwapBuffers(hDC);
@@ -264,7 +272,7 @@ void entrypoint( void )
 	#endif
 
 #ifdef CAPTURE
-	fclose(fflush);
+	fclose(captureStream);
 #endif
 
 	ExitProcess(0);
