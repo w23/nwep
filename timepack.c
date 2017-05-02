@@ -97,7 +97,7 @@ int timelineWrite(FILE *f) {
 	fprintf(f, "static const float timeline_ranges[%d] = {\n\t", data.columns);
 	for (int i = 0; i < data.columns; ++i)
 		fprintf(f, "%f%s", data.column_ranges[i], (i != (data.columns-1)) ? ", " : "};\n");
-	fprintf(f, "static const unsigned char timeline_data[%d] = {\n", (1 + data.columns) * data.rows);
+	fprintf(f, "static const unsigned char timeline_times[%d] = {\n\t", data.rows);
 
 	int prevtime = 0;
 	for (int i = 0; i < data.rows; ++i) {
@@ -110,18 +110,22 @@ int timelineWrite(FILE *f) {
 		if (deltatime < 0) {
 			printf("Error at row %d: dt=%d, but it should be at least %dms", i, deltatime, 100);
 		}
-		fprintf(f, "%d", deltatime);
+		fprintf(f, "%d%s", deltatime, (i != (data.rows - 1)) ? ", " : "\n};\n");
 		prevtime = keypoint->time / 100;
+	}
 
-		for (int j = 0; j < data.columns; ++j) {
+	fprintf(f, "static const unsigned char timeline_values[%d] = {\n\t", data.columns * data.rows);
+	for (int j = 0; j < data.columns; ++j) {
+		for (int i = 0; i < data.rows; ++i) {
+			const Keypoint *keypoint = (Keypoint*)(data.keypoints_storage + data.keypoint_size * i);
 			const float r = data.column_ranges[j];
 			int value = (keypoint->columns[j] + r) * 255.f / (2.f * r);
 			if (value < 0) { printf("WARN: %d:%d %f -> %d\n", i, j, keypoint->columns[j], value); value = 0; }
 			if (value > 255) { printf("WARN: %d:%d %f -> %d\n", i, j, keypoint->columns[j], value); value = 255; }
-			fprintf(f, ", %d", value);
+			fprintf(f, "%d%s", value, (i != (data.rows -1)) ? ", " : "");
 		}
 
-		fprintf(f, "%s\n", (i != (data.rows - 1)) ? "," : "};");
+		fprintf(f, "%s", (j != (data.columns - 1)) ? ",\n\t" : "\n};\n");
 	}
 	return 1;
 }
