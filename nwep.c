@@ -31,6 +31,16 @@
 //#pragma data_seg(".fltused")
 int _fltused = 1;
 #endif
+
+#define oglCreateShaderProgramv gl.CreateShaderProgramv
+#define oglGenFramebuffers gl.GenFramebuffers
+#define oglBindFramebuffer gl.BindFramebuffer
+#define oglFramebufferTexture2D gl.FramebufferTexture2D
+#define oglUseProgram gl.UseProgram
+#define oglGetUniformLocation gl.GetUniformLocation
+#define oglUniform1i gl.Uniform1i
+#define oglUniform3f gl.Uniform3f
+
 #elif defined(__linux__)
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
@@ -51,7 +61,7 @@ int _fltused = 1;
 #include "glext.h"
 
 #include "music/4klang.h"
-#define INTRO_LENGTH (1000 * MAX_SAMPLES / SAMPLE_RATE)
+#define INTRO_LENGTH (1000ull * MAX_SAMPLES / SAMPLE_RATE)
 
 #ifdef CAPTURE
 #define CAPTURE_FRAMERATE 60
@@ -125,16 +135,25 @@ FUNCLIST_DO(PFNGLLINKPROGRAMPROC, LinkProgram)
   FUNCLIST_DO(PFNGLCHECKFRAMEBUFFERSTATUSPROC, CheckFramebufferStatus)
 #endif
 
-#pragma data_seg(".static")
+#define FUNCLISTS FUNCLIST FUNCLIST_DBG
+
 static SAMPLE_TYPE lpSoundBuffer[MAX_SAMPLES * 2];
 static int p_ray, p_dof;
 enum { FbTex_Ray, FbTex_COUNT };
 static GLuint tex[FbTex_COUNT], fb[FbTex_COUNT];
 
 #ifdef _WIN32
-#pragma data_seg(".glfuncs")
-#define FUNCLIST_DO(T,N) static T ogl##N;
-FUNCLIST FUNCLIST_DBG
+#pragma data_seg(".gl_names")
+#define FUNCLIST_DO(T,N) "gl" #N "\0"
+static const char gl_names[] =
+FUNCLISTS
+"\0";
+
+#undef FUNCLIST_DO
+#define FUNCLIST_DO(T,N) T N;
+static struct {
+	FUNCLISTS
+} gl;
 #undef FUNCLIST_DO
 
 #pragma data_seg(".pfd")
@@ -280,29 +299,33 @@ static __forceinline void introPaint(float time) {
 
 #ifdef _WIN32
 #pragma code_seg(".entry")
-void entrypoint( void ) {
-	#ifdef FULLSCREEN
-	ChangeDisplaySettings(&screenSettings,CDS_FULLSCREEN);
+void entrypoint(void) {
+#ifdef FULLSCREEN
+	ChangeDisplaySettings(&screenSettings, CDS_FULLSCREEN);
 	ShowCursor(0);
 	HDC hDC = GetDC(CreateWindow((LPCSTR)0xC018, 0, WS_POPUP | WS_VISIBLE, 0, 0, XRES, YRES, 0, 0, 0, 0));
-	#else
+#else
 	HDC hDC = GetDC(CreateWindow("static", 0, WS_POPUP | WS_VISIBLE, 0, 0, XRES, YRES, 0, 0, 0, 0));
-	#endif
+#endif
 
 	// initalize opengl
-	SetPixelFormat(hDC,ChoosePixelFormat(hDC,&pfd),&pfd);
-	wglMakeCurrent(hDC,wglCreateContext(hDC));
-	
+	SetPixelFormat(hDC, ChoosePixelFormat(hDC, &pfd), &pfd);
+	wglMakeCurrent(hDC, wglCreateContext(hDC));
+
+	{
+		const char *next_gl_func = gl_names;
+		void **funcptr = &gl;
+		while (next_gl_func[0] != '\0') {
+			*funcptr = wglGetProcAddress(next_gl_func);
 #ifdef DEBUG_FUNCLOAD
-#define FUNCLIST_DO(T, N) ogl##N = (T)wglGetProcAddress("gl" # N); \
-	if (!ogl##N) { \
-		MessageBox(NULL, gl # N, "wglGetProcAddress", 0x00000000L); \
-	}
-#else
-#define FUNCLIST_DO(T, N) ogl##N = (T)wglGetProcAddress("gl" # N);
+			if (!*funcptr) { \
+				MessageBox(NULL, next_gl_func, "wglGetProcAddress", 0x00000000L); \
+			}
 #endif
-	FUNCLIST FUNCLIST_DBG
-#undef FUNCLIST_DO
+			++funcptr;
+			while (*(next_gl_func++) != '\0');
+		}
+	}
 
 	introInit();
 
