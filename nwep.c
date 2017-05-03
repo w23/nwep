@@ -79,8 +79,8 @@ static float TV[TIMELINE_ROWS];
 static __forceinline void timelineUpdate(float time) {
 	int i, j;
 	for (i = 1; i < TIMELINE_ROWS; ++i) {
-		const float dt = timeline_times[i] * .1f;
-		//printf("%.2f: [i=%d; dt=%.2f, t=%.2f] ", time, i, dt, time/dt);
+		const float dt = timeline_times[i] * (float)(SAMPLES_PER_TICK) / (float)(SAMPLE_RATE) / 2.f;
+		//printf("%.2f: [i=%d; dt=%.2f, t=%.2f]\n", time, i, dt, time/dt);
 		if (dt >= time) {
 			time /= dt;
 			break;
