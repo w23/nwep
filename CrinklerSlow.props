@@ -7,7 +7,7 @@
   <PropertyGroup />
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalOptions>/CRINKLER  /HASHTRIES:3000 /COMPMODE:SLOW /ORDERTRIES:6000 /REPORT:report-slow.html /PROGRESSGUI /SATURATE /HASHSIZE:900 /UNSAFEIMPORT /NOALIGNMENT /NOINITIALIZERS %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/CRINKLER  /HASHTRIES:3000 /COMPMODE:SLOW /ORDERTRIES:6000 /REPORT:report-slow.html /PROGRESSGUI /SATURATE /HASHSIZE:900 /UNSAFEIMPORT /NOALIGNMENT /NOINITIALIZERS /TINYIMPORT %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup />
