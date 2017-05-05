@@ -1,12 +1,15 @@
+#include "music/4klang.h"
+
 #include "atto/app.h"
 #define ATTO_GL_H_IMPLEMENT
-#define ATTO_GL_DEBUG
+//#define ATTO_GL_DEBUG
 #include "atto/gl.h"
 #include "atto/math.h"
 
 #include <utility>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <stdlib.h>
 #include <sys/types.h>
@@ -111,6 +114,102 @@ public:
 	}
 };
 
+class Timeline {
+	String &source_;
+
+	int columns_, rows_;
+	std::vector<float> data_;
+
+	bool parse(const char *str) {
+		const char *p = str;
+		int columns, pattern_size, icol = 0, irow = 0;
+
+#define SSCAN(expect, format, ...) { \
+	int n;\
+	if (expect != sscanf(p, format " %n", __VA_ARGS__, &n)) { \
+		aAppDebugPrintf("parsing error at %d (row=%d, col=%d)", \
+			p - str, irow, icol); \
+		return false; \
+	} \
+	p += n; \
+}
+		SSCAN(2, "%d %d", &columns, &pattern_size);
+		std::vector<float> data;
+		float lasttime = 0;
+		while (*p != '\0') {
+			int pat, tick, tick2;
+			++irow;
+			SSCAN(3, "%d:%d.%d", &pat, &tick, &tick2);
+			const float time = ((pat * pattern_size + tick) * 2 + tick2)
+				* (float)(SAMPLES_PER_TICK) / (float)(SAMPLE_RATE) / 2.f;
+			data.push_back(time - lasttime);
+			aAppDebugPrintf("row=%d time=(%dx%d:%d+%d)%f, dt=%f",
+				irow, pat, pattern_size, tick, tick2, time, data.back());
+			lasttime = time;
+
+			for (int i = 0; i < columns; ++i) {
+				float value;
+				icol = i;
+				SSCAN(1, "%f", &value);
+				data.push_back(value);
+			}
+		}
+#undef SSCAN
+
+		rows_ = irow - 1;
+		columns_ = columns;
+		data_ = std::move(data);
+		return true;
+	}
+
+public:
+	Timeline(String &source) : source_(source), columns_(0), rows_(0) {}
+
+	bool update() {
+		return source_.update() && parse(source_.string().c_str());
+	}
+
+	struct Sample {
+		float operator[](int index) const {
+			if (index < 0 || index >= data_.size()) {
+				//aAppDebugPrintf("index %d is out of bounds [%d, %d]",
+				//	index, 0, static_cast<int>(data_.size()) - 1);
+				return 0;
+			}
+			
+			return data_[index];
+		}
+
+		std::vector<float> data_;
+	};
+
+	Sample sample(float time) {
+		int i, j;
+		for (i = 1; i < rows_ - 1; ++i) {
+			const float dt = data_.at(i * (columns_ + 1));
+			//printf("%.2f: [i=%d; dt=%.2f, t=%.2f]\n", time, i, dt, time/dt);
+			if (dt >= time) {
+				time /= dt;
+				break;
+			}
+			time -= dt;
+		}
+
+		Sample ret;
+		ret.data_.resize(columns_);
+
+		for (j = 0; j < columns_; ++j) {
+			const float a = data_.at((i - 1) * (columns_ + 1) + j + 1);
+			const float b = data_.at(i * (columns_ + 1) + j + 1);
+			ret.data_[j] = a + (b - a) * time;
+			//printf("%.2f ", ret.data_[j]);
+		}
+		//printf("\n");
+
+		return ret;
+	}
+};
+
 const char fs_vtx_source[] =
 	"void main() {\n"
 		"gl_Position = gl_Vertex;\n"
@@ -123,9 +222,7 @@ class Intro {
 	ATimeUs time_, last_frame_time_;
 	ATimeUs loop_a_, loop_b_;
 
-	float cam_r_, cam_y_, cam_axz_;
-	float at_r_, at_y_, at_axz_;
-
+	AVec3f cam_, at_;
 	AVec3f mouse;
 
 	int frame_width, frame_height;
@@ -137,6 +234,9 @@ class Intro {
 	Program post_prg;
 	FileString out_src;
 	Program out_prg;
+
+	FileString timeline_src_;
+	Timeline timeline_;
 
 	enum {
 		FbTex_None,
@@ -166,8 +266,8 @@ public:
 		, last_frame_time_(0)
 		, loop_a_(0)
 		, loop_b_(time_end_)
-		, cam_r_(40.f), cam_y_(2.f), cam_axz_(0.f)
-		, at_r_(0.f), at_y_(0.f), at_axz_(0.f)
+		, cam_(aVec3f(40.f, 1.5f, 0.f))
+		, at_(aVec3ff(0.f))
 		, mouse(aVec3ff(0))
 		, frame_width(width)
 		, frame_height(height)
@@ -178,6 +278,8 @@ public:
 		, post_prg(fs_vtx, post_src)
 		, out_src("out.glsl")
 		, out_prg(fs_vtx, out_src)
+		, timeline_src_("timeline.seq")
+		, timeline_(timeline_src_)
 	{
 		tex_[0] = fb_[0] = 0;
 		AGL__CALL(glGenTextures(FbTex_COUNT-1, tex_ + 1));
@@ -199,7 +301,7 @@ public:
 		ATTO_ASSERT(status == GL_FRAMEBUFFER_COMPLETE);
 	}
 
-	void drawPass(float now, int tex, int prog, int fb) {
+	void drawPass(float now, const Timeline::Sample &TV, int tex, int prog, int fb) {
 		AGL__CALL(glBindTexture(GL_TEXTURE_2D, tex));
 		AGL__CALL(glUseProgram(prog));
 		AGL__CALL(glBindFramebuffer(GL_FRAMEBUFFER, fb));
@@ -211,8 +313,8 @@ public:
 			AGL__CALL(glUniform3f(glGetUniformLocation(prog, "V"), a_app_state->width, a_app_state->height, now));
 		}
 		AGL__CALL(glUniform1i(glGetUniformLocation(prog, "B"), 0));
-		AGL__CALL(glUniform3f(glGetUniformLocation(prog, "C"), cam_r_, cam_y_, cam_axz_));
-		AGL__CALL(glUniform3f(glGetUniformLocation(prog, "A"), at_r_, at_y_, at_axz_));
+		AGL__CALL(glUniform3f(glGetUniformLocation(prog, "C"), TV[0], TV[1], TV[2]));
+		AGL__CALL(glUniform3f(glGetUniformLocation(prog, "A"), TV[3], TV[4], TV[5]));
 		AGL__CALL(glUniform1f(glGetUniformLocation(prog, "TPCT"), (float)time_ / (float)time_end_));
 		AGL__CALL(glRects(-1,-1,1,1));
 	}
@@ -228,15 +330,21 @@ public:
 
 		const float now = 1e-6f * time_;
 
-		cam_r_ = 20.f + sinf(now*.1f) * 18.f;
+		cam_.x = 20.f + sinf(now*.1f) * 18.f;
 
-		raymarch_prg.update();
-		post_prg.update();
-		out_prg.update();
+		bool need_redraw = !paused_;
+		need_redraw |= raymarch_prg.update();
+		need_redraw |= post_prg.update();
+		need_redraw |= out_prg.update();
+		need_redraw |= timeline_.update();
 
-		drawPass(now, 0, raymarch_prg.program(), FbTex_Ray);
-		drawPass(now, FbTex_Ray, post_prg.program(), FbTex_Frame);
-		drawPass(now, FbTex_Frame, out_prg.program(), 0);
+		const Timeline::Sample TV = timeline_.sample(now);
+
+		if (need_redraw) {
+			drawPass(now, TV, 0, raymarch_prg.program(), FbTex_Ray);
+			drawPass(now, TV, FbTex_Ray, post_prg.program(), FbTex_Frame);
+		}
+		drawPass(now, TV, FbTex_Frame, out_prg.program(), 0);
 	}
 
 	void adjustTime(int delta) {
