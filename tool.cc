@@ -176,7 +176,7 @@ public:
 				//	index, 0, static_cast<int>(data_.size()) - 1);
 				return 0;
 			}
-			
+
 			return data_[index];
 		}
 
@@ -219,6 +219,7 @@ const char fs_vtx_source[] =
 class Intro {
 	int paused_;
 	const ATimeUs time_end_;
+	bool time_adjusted_;
 	ATimeUs time_, last_frame_time_;
 	ATimeUs loop_a_, loop_b_;
 
@@ -263,6 +264,7 @@ public:
 		: paused_(0)
 		, time_end_(150 * 1000000)
 		, time_(0)
+		, time_adjusted_(true)
 		, last_frame_time_(0)
 		, loop_a_(0)
 		, loop_b_(time_end_)
@@ -315,6 +317,7 @@ public:
 		AGL__CALL(glUniform1i(glGetUniformLocation(prog, "B"), 0));
 		AGL__CALL(glUniform3f(glGetUniformLocation(prog, "C"), TV[0], TV[1], TV[2]));
 		AGL__CALL(glUniform3f(glGetUniformLocation(prog, "A"), TV[3], TV[4], TV[5]));
+
 		AGL__CALL(glUniform1f(glGetUniformLocation(prog, "TPCT"), (float)time_ / (float)time_end_));
 		AGL__CALL(glRects(-1,-1,1,1));
 	}
@@ -332,7 +335,7 @@ public:
 
 		cam_.x = 20.f + sinf(now*.1f) * 18.f;
 
-		bool need_redraw = !paused_;
+		bool need_redraw = !paused_ || time_adjusted_;
 		need_redraw |= raymarch_prg.update();
 		need_redraw |= post_prg.update();
 		need_redraw |= out_prg.update();
@@ -345,6 +348,8 @@ public:
 			drawPass(now, TV, FbTex_Ray, post_prg.program(), FbTex_Frame);
 		}
 		drawPass(now, TV, FbTex_Frame, out_prg.program(), 0);
+
+		time_adjusted_ = false;
 	}
 
 	void adjustTime(int delta) {
@@ -352,6 +357,7 @@ public:
 			time_ = loop_a_;
 		else
 			time_ += delta;
+		time_adjusted_ = true;
 	}
 
 	void key(ATimeUs ts, AKey key) {

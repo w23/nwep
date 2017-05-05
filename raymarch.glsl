@@ -128,42 +128,35 @@ vec3 N(vec3 p) {
 
 void material(vec3 p, out vec3 n, out vec3 em, out vec3 a, out float r, out float m) {
 	n = N(p);
-	em = vec3(0.,1.,1.);
-	a = vec3(0.);
-	r = 0.;
-	m = .99;
+	a = em = vec3(0.);
+	r = m = 0.;
 
 	if (mindex == 1) {
-		em = vec3(0.);
-		a = vec3(1.);
-		r = .5;
+		a = vec3(.5);
+		r = .4;
+		m = .99;
 	} else if (mindex == 2) {
-		float el = sin(T + dot(normalize(vec3(1.)), floor(p/2.)));
-		a = max(0.,el) * vec3(1.);
-		em = vec3(0.);
-		r = .2;
-	} else if (mindex == 3) {
-		em = vec3(0.);
-		a = vec3(1.);
-		r = .8;
-	} else if (mindex == 4) {
-		em = vec3(0.);
+		float f = box3(rep3(p, vec3(2.)), vec3(.6));
 		a = vec3(.56, .57, .58);
+		r = mix(.15, .5, step(f, 0.));
 		m = .8;
+	} else if (mindex == 3) {
+		float stripe = step(0., sin(atan(p.x,p.z)*60.));
+		a = vec3(mix(1., .1, stripe));
+		r = mix(.9, .2, stripe);
+		m = .1;
+	} else if (mindex == 4) {
+		a = vec3(.56, .57, .58);
 		r = .2 + .6 * pow(noise2(p.xz*4.+40.),4.);
+		m = .8;
 	} else if (mindex == 5) {
-		em = vec3(0.);
-		a = vec3(1.);
-		r = .9;
-		m = .0;
+		a = vec3(1., 0., 0.);
+		r = .2;
+		m = .8;
 	} else {
 		for (int i = 0; i < LN; ++i)
-			if (mindex == 100 + i) {
+			if (mindex == 100 + i)
 				em = LC[i];
-				a = vec3(0.);
-				r = .0;
-				m = .0;
-			}
 	}
 }
 
