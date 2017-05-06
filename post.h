@@ -6,14 +6,14 @@
 
 const char *post_glsl =
  "uniform sampler2D B;"
- "uniform vec3 V;"
+ "uniform vec3 V,D;"
  "void main()"
  "{"
    "vec2 v=gl_FragCoord.xy/V.xy,s=vec2(.002*V.y/V.x,.002),z=vec2(0.,1.1),c;"
    "vec3 i=vec3(0.);"
    "vec4 r=texture2D(B,v),a=vec4(r.xyz,1.),t;"
    "int w=256;"
-   "float x=4.,p=2.4,y=1.,e;"
+   "float x=D.z,p=2.4,y=1.,e;"
    "mat2 m=mat2(cos(p),sin(p),-sin(p),cos(p));"
    "for(int f=0;f<w;f++)"
      "y+=1./y,z*=m,c=s*(y-1.)*z,t=texture2D(B,v+c),i+=t.xyz,e=length(c),a+=step(t.w,r.w)*vec4(t.xyz,1.)*step(e*.01,step(e,abs(t.w-x)/V.x));"
