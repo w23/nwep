@@ -1,5 +1,5 @@
 uniform sampler2D B;
-uniform vec3 V;
+uniform vec3 V, D;
 
 void main() {
 	vec2 uv = gl_FragCoord.xy / V.xy, pixel = vec2(.002*V.y/V.x,.002), angle=vec2(0.,1.1), off;
@@ -7,7 +7,7 @@ void main() {
 	vec4 pix = texture2D(B, uv), dof = vec4(pix.xyz, 1.), smpl;
 
 	int N = 256;
-	float focus = 4., GA = 2.4, rad = 1., r;
+	float focus = D.z, GA = 2.4, rad = 1., r;
 	mat2 rot = mat2(cos(GA),sin(GA),-sin(GA),cos(GA));
 	for (int i=0;i<N;i++) {
 		rad += 1./rad;

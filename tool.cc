@@ -262,7 +262,7 @@ class Intro {
 public:
 	Intro(int width, int height)
 		: paused_(0)
-		, time_end_(150 * 1000000)
+		, time_end_(1000000.f * MAX_SAMPLES / (float)SAMPLE_RATE)
 		, time_(0)
 		, time_adjusted_(true)
 		, last_frame_time_(0)
@@ -317,6 +317,7 @@ public:
 		AGL__CALL(glUniform1i(glGetUniformLocation(prog, "B"), 0));
 		AGL__CALL(glUniform3f(glGetUniformLocation(prog, "C"), TV[0], TV[1], TV[2]));
 		AGL__CALL(glUniform3f(glGetUniformLocation(prog, "A"), TV[3], TV[4], TV[5]));
+		AGL__CALL(glUniform3f(glGetUniformLocation(prog, "D"), TV[6], TV[7], TV[8]));
 
 		AGL__CALL(glUniform1f(glGetUniformLocation(prog, "TPCT"), (float)time_ / (float)time_end_));
 		AGL__CALL(glRects(-1,-1,1,1));

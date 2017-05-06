@@ -276,6 +276,7 @@ static void paint(int prog, int src_tex, int dst_fb, float time) {
 	oglUniform3f(oglGetUniformLocation(prog, "V"), (float)XRES, (float)YRES, time);
 	oglUniform3f(oglGetUniformLocation(prog, "C"), TV[0], TV[1], TV[2]);
 	oglUniform3f(oglGetUniformLocation(prog, "A"), TV[3], TV[4], TV[5]);
+	oglUniform3f(oglGetUniformLocation(prog, "D"), TV[6], TV[7], TV[8]);
 	glRects(-1, -1, 1, 1);
 }
 

@@ -1,4 +1,4 @@
-uniform vec3 V, C, A;
+uniform vec3 V, C, A, D;
 float T = V.z;
 
 const vec3 E = vec3(.0,1e-3,1.);
@@ -110,13 +110,10 @@ float W(vec3 p) {
 
 	PICK(w, rings, 3);
 	PICK(w, paths, 4);
-	if (T > 44.) {
-		if (r3 < 8.) {
-			float s = mix(.001, 4., smoothstep(44., 54., T));
-			PICK(w, F4(p/s)*s, 5);
-		} else
-			w = min(w, r3 + 2.);
-	}
+	if (r3 < 8.)
+		PICK(w, F4(p/D.x)*D.x, 5);
+	else
+		w = min(w, r3 + 2.);
 
 	return w;
 }
@@ -224,12 +221,12 @@ void main() {
 	LC[1] = 30.*vec3(.7,.35,.15)*mix(1.,noise(T*20.+10.),.3);
 	LC[2] = 30.*vec3(.3,.35,.75)*mix(1.,noise(T*20.+20.),.3);
 	LC[3] = 30.*vec3(.7,.35,.15)*mix(1.,noise(T*20.+30.),.3);
-	LC[4] = smoothstep(44., 50., T) * 50.*vec3(1.)*mix(1.,noise(T*20.+30.),.3);
+	LC[4] = 50.*vec3(D.x)*mix(1.,noise(T*20.+30.),.3);
 
 	vec3 origin = C + .1 * noise13(T*3.);
 	mat3 LAT = lookat(origin, A, E.xzx);
 	//origin += LAT * vec3(uv*.01, 0.);
-	vec3 ray = LAT * normalize(vec3(uv, -1.44));
+	vec3 ray = LAT * normalize(vec3(uv, -D.y));
 
 	vec3 color = E.xxx;
 	
