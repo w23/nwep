@@ -1,7 +1,7 @@
 uniform vec3 V, C, A, D;
 float T = V.z;
 
-const vec3 E = vec3(.0,1e-3,1.);
+const vec3 E = vec3(.0,.001,1.);
 const float PI = 3.141593;
 
 float hash1(float v){return fract(sin(v)*43758.5); }
@@ -61,7 +61,7 @@ float F4(vec3 p) {
 			p.z -= C.z * (S - 1.);
 	}
 	//return (length(p) - 2.) * pow(S, -float(N));
-	return box3(p, vec3(1.)) * pow(S, -float(N));
+	return box3(p, E.zzz) * pow(S, -float(N));
 }
 
 int mindex = 0;
@@ -109,51 +109,12 @@ float W(vec3 p) {
 
 	PICK(w, rings, 3);
 	PICK(w, paths, 4);
-	if (r3 < 8.)
+	if (r3 < 2. * D.x)
 		PICK(w, F4(p/D.x)*D.x, 5);
 	else
-		w = min(w, r3 + 2.);
+		w = min(w, r3 + 1.);
 
 	return w;
-}
-
-vec3 N(vec3 p) {
-	float w=W(p);
-	return normalize(vec3(W(p+E.yxx)-w,W(p+E.xyx)-w,W(p+E.xxy)-w));
-}
-
-void material(vec3 p, out vec3 n, out vec3 em, out vec3 a, out float r, out float m) {
-	n = N(p);
-	a = em = vec3(0.);
-	r = m = 0.;
-
-	if (mindex == 1) {
-		a = vec3(.5);
-		r = .4;
-		m = .99;
-	} else if (mindex == 2) {
-		float f = box3(rep3(p, vec3(2.)), vec3(.6));
-		a = vec3(.56, .57, .58);
-		r = mix(.15, .5, step(f, 0.));
-		m = .8;
-	} else if (mindex == 3) {
-		float stripe = step(0., sin(atan(p.x,p.z)*60.));
-		a = vec3(mix(1., .1, stripe));
-		r = mix(.9, .2, stripe);
-		m = .1;
-	} else if (mindex == 4) {
-		a = vec3(.56, .57, .58);
-		r = .2 + .6 * pow(noise2(p.xz*4.+40.),4.);
-		m = .8;
-	} else if (mindex == 5) {
-		a = vec3(1., 0., 0.);
-		r = .2;
-		m = .8;
-	} else {
-		for (int i = 0; i < LN; ++i)
-			if (mindex == 100 + i)
-				em = LC[i];
-	}
 }
 
 float DistributionGGX(float NH, float r) {
@@ -166,6 +127,7 @@ float GeometrySchlickGGX(float NV, float r) {
 	r += 1.; r *= r / 8.;
 	return NV / (NV * (1. - r) + r);
 }
+
 vec3 trace(vec3 o, vec3 d, float maxl) {
 	float l = 0., minw = 1e3;
 	int i;
@@ -177,25 +139,6 @@ vec3 trace(vec3 o, vec3 d, float maxl) {
 		if (w < .002*l || l > maxl) break;
 	}
 	return vec3(l, minw, float(i));
-}
-vec3 pbf(vec3 p, vec3 V, vec3 N, vec3 albedo, float metallic, float roughness) {
-	vec3 Lo = vec3(0.);
-	for(int i = 0; i < LN; ++i) {
-		vec3 L = LP[i] - p; float LL = dot(L,L), Ls = sqrt(LL);
-		L = normalize(L);
-
-		vec3 tr = trace(p + .02 * L, L, Ls);
-		if (tr.x + .2 < Ls ) continue;
-
-		vec3 H = normalize(V + L);
-		vec3 F0 = mix(vec3(.04), albedo, metallic);
-		float HV = max(dot(H, V), .0), NV = max(dot(N, V), .0), NL = max(dot(N, L), 0.), NH = max(dot(N, H), 0.);
-		vec3 F = F0 + (1. - F0) * pow(1. - HV, 5.);
-		float G = GeometrySchlickGGX(NV, roughness) * GeometrySchlickGGX(NL, roughness);
-		vec3 brdf = DistributionGGX(NH, roughness)* G * F / (4. * NV * NL + .001);
-		Lo += 30. * (.7 + .3 * noise(T*20. + float(i))) * ((vec3(1.) - F) * (1. - metallic)* albedo / PI + brdf) * NL * LC[i] / LL;
-	}
-	return Lo;
 }
 
 mat3 lookat(vec3 p, vec3 a, vec3 y) {
@@ -213,7 +156,7 @@ void main() {
 	LP[1] = vec3(11., 6.,-11.);
 	LP[2] = vec3(-11., 6.,-11.);
 	LP[3] = vec3(-11., 6.,11.);
-	LP[4] = vec3(0.);
+	LP[4] = E.xxx;
 
 	LC[0] = vec3(.7,.35,.45);
 	LC[1] = vec3(.7,.35,.15);
@@ -224,17 +167,58 @@ void main() {
 	vec3 origin = C + .1 * noise13(T*3.);
 	mat3 LAT = lookat(origin, A, E.xzx);
 	//origin += LAT * vec3(uv*.01, 0.);
-	vec3 ray = LAT * normalize(vec3(uv, -D.y));
+	vec3 ray = - LAT * normalize(vec3(uv, -D.y));
 
-	vec3 color = E.xxx;
-	
-	const float maxl = 40.;
-	vec3 tr = trace(origin, ray, maxl);
-	vec3 p = origin + tr.x * ray;
-	vec3 albedo, em, n;
-	float metallic, roughness;
-	material(p, n, em, albedo, roughness, metallic);
-	color = em + pbf(p, -ray, n, albedo, metallic, roughness);
+	vec3 tr = trace(origin, -ray, 40.);
+	vec3 p = origin - tr.x * ray;
+
+	vec3 color = E.xxx, albedo = E.xxx;
+	float metallic = 0., roughness = 0.;
+
+	float w=W(p);
+	vec3 normal = normalize(vec3(W(p+E.yxx),W(p+E.xyx),W(p+E.xxy))-w);
+
+	if (mindex == 1) {
+		albedo = vec3(.5);
+		roughness = .4;
+		metallic = .99;
+	} else if (mindex == 2) {
+		albedo = vec3(.56, .57, .58);
+		roughness = mix(.15, .5, step(box3(rep3(p, vec3(2.)), vec3(.6)), 0.));
+		metallic = .8;
+	} else if (mindex == 3) {
+		float stripe = step(0., sin(atan(p.x,p.z)*60.));
+		albedo = vec3(mix(1., .1, stripe));
+		roughness = mix(.9, .2, stripe);
+		metallic = .1;
+	} else if (mindex == 4) {
+		albedo = vec3(.56, .57, .58);
+		roughness = .2 + .6 * pow(noise2(p.xz*4.+40.),4.);
+		metallic = .8;
+	} else if (mindex == 5) {
+		albedo = vec3(1., 0., 0.);
+		roughness = .2;
+		metallic = .8;
+	} else {
+		for (int i = 0; i < LN; ++i)
+			if (mindex == 100 + i)
+				color = LC[i] * 30.;
+	}
+
+	for(int i = 0; i < LN; ++i) {
+    vec3 L = LP[i] - p; float LL = dot(L,L), Ls = sqrt(LL);
+		L = normalize(L);
+
+		vec3 tr = trace(p + .02 * L, L, Ls);
+		if (tr.x + .2 < Ls ) continue;
+
+    vec3 H = normalize(ray + L), F0 = mix(vec3(.04), albedo, metallic);
+		float HV = max(dot(H, ray), .0), NV = max(dot(normal, ray), .0), NL = max(dot(normal, L), 0.), NH = max(dot(normal, H), 0.);
+		vec3 F = F0 + (1. - F0) * pow(1. - HV, 5.);
+		float G = GeometrySchlickGGX(NV, roughness) * GeometrySchlickGGX(NL, roughness);
+		vec3 brdf = DistributionGGX(NH, roughness)* G * F / (4. * NV * NL + .001);
+		color += 30. * (.7 + .3 * noise(T*20. + float(i))) * ((vec3(1.) - F) * (1. - metallic)* albedo / PI + brdf) * NL * LC[i] / LL;
+	}
 
 	gl_FragColor = vec4(color, tr.x);
 }
