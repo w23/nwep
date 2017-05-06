@@ -99,10 +99,14 @@ static __forceinline void timelineUpdate(float time) {
 	}
 
 	for (j = 0; j < TIMELINE_COLS; ++j) {
-		const float r = timeline_ranges[j];
 		const float a = timeline_values[i + j * TIMELINE_ROWS - 1];
 		const float b = timeline_values[i + j * TIMELINE_ROWS];
+#if DO_RANGES
+		const float r = timeline_ranges[j];
 		TV[j] = ((a + (b - a) * time) / 255.f * 2.f - 1.f) * r;
+#else
+		TV[j] = (a + (b - a) * time) * .5f - 1.f;
+#endif
 		//printf("%.2f ", TV[j]);
 	}
 	//printf("\n");

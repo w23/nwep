@@ -2,7 +2,7 @@ uniform vec3 V, C, A, D;
 float T = V.z;
 
 const vec3 E = vec3(.0,1e-3,1.);
-const float PI = 3.14159265359;
+const float PI = 3.141593;
 
 float hash1(float v){return fract(sin(v)*43758.5); }
 //float hash2(vec2 p){return fract(1e4*sin(17.*p.x+.1*p.y)*(.1+abs(sin(13.*p.y+p.x))));}
@@ -52,8 +52,8 @@ float F4(vec3 p) {
 		p = p * RY(.1+T*.3);
 		p = abs(p);
 		p.xy += step(p.x, p.y)*(p.yx - p.xy);
-    p.xz += step(p.x, p.z)*(p.zx - p.xz);
-    p.yz += step(p.y, p.z)*(p.zy - p.yz);
+		p.xz += step(p.x, p.z)*(p.zx - p.xz);
+		p.yz += step(p.y, p.z)*(p.zy - p.yz);
 		p = p * RY(.7);
 		p.xy = p.xy * S - (S - 1.) * C.xy;
 		p.z = S * p.z;
@@ -67,7 +67,6 @@ float F4(vec3 p) {
 int mindex = 0;
 //#define PICK(d, dn, mn) if(dn<d){d=dn;mindex=mn;}
 void PICK(inout float d, float dn, int mat) { if (dn<d) {d = dn; mindex = mat;} }
-
 
 float path(vec3 p) {
 	float flr = vmax(abs(p.xy) - vec2(2.,.1));
@@ -182,19 +181,19 @@ vec3 trace(vec3 o, vec3 d, float maxl) {
 vec3 pbf(vec3 p, vec3 V, vec3 N, vec3 albedo, float metallic, float roughness) {
 	vec3 Lo = vec3(0.);
 	for(int i = 0; i < LN; ++i) {
-    vec3 L = LP[i] - p; float LL = dot(L,L), Ls = sqrt(LL);
+		vec3 L = LP[i] - p; float LL = dot(L,L), Ls = sqrt(LL);
 		L = normalize(L);
 
 		vec3 tr = trace(p + .02 * L, L, Ls);
 		if (tr.x + .2 < Ls ) continue;
 
-    vec3 H = normalize(V + L);
+		vec3 H = normalize(V + L);
 		vec3 F0 = mix(vec3(.04), albedo, metallic);
 		float HV = max(dot(H, V), .0), NV = max(dot(N, V), .0), NL = max(dot(N, L), 0.), NH = max(dot(N, H), 0.);
 		vec3 F = F0 + (1. - F0) * pow(1. - HV, 5.);
 		float G = GeometrySchlickGGX(NV, roughness) * GeometrySchlickGGX(NL, roughness);
 		vec3 brdf = DistributionGGX(NH, roughness)* G * F / (4. * NV * NL + .001);
-		Lo += ((vec3(1.) - F) * (1. - metallic)* albedo / PI + brdf) * NL * LC[i] / LL;
+		Lo += 30. * (.7 + .3 * noise(T*20. + float(i))) * ((vec3(1.) - F) * (1. - metallic)* albedo / PI + brdf) * NL * LC[i] / LL;
 	}
 	return Lo;
 }
@@ -210,18 +209,17 @@ void main() {
 	vec2 uv = gl_FragCoord.xy / V.xy * 2. - 1.;
 	uv.x *= V.x / V.y;
 
-	float Ldist = 11.;
-	LP[0] = vec3(Ldist, 6.,Ldist);
-	LP[1] = vec3(Ldist, 6.,-Ldist);
-	LP[2] = vec3(-Ldist, 6.,-Ldist);
-	LP[3] = vec3(-Ldist, 6.,Ldist);
+	LP[0] = vec3(11., 6.,11.);
+	LP[1] = vec3(11., 6.,-11.);
+	LP[2] = vec3(-11., 6.,-11.);
+	LP[3] = vec3(-11., 6.,11.);
 	LP[4] = vec3(0.);
 
-	LC[0] = 30.*vec3(.7,.35,.45)*mix(1.,noise(T*20.),.3);
-	LC[1] = 30.*vec3(.7,.35,.15)*mix(1.,noise(T*20.+10.),.3);
-	LC[2] = 30.*vec3(.3,.35,.75)*mix(1.,noise(T*20.+20.),.3);
-	LC[3] = 30.*vec3(.7,.35,.15)*mix(1.,noise(T*20.+30.),.3);
-	LC[4] = 50.*vec3(D.x)*mix(1.,noise(T*20.+30.),.3);
+	LC[0] = vec3(.7,.35,.45);
+	LC[1] = vec3(.7,.35,.15);
+	LC[2] = vec3(.3,.35,.75);
+	LC[3] = vec3(.7,.35,.15);
+	LC[4] = vec3(D.x);
 
 	vec3 origin = C + .1 * noise13(T*3.);
 	mat3 LAT = lookat(origin, A, E.xzx);
