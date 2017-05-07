@@ -2,22 +2,25 @@ uniform sampler2D B;
 uniform vec3 V, D;
 
 void main() {
-	vec2 uv = gl_FragCoord.xy / V.xy, pixel = vec2(.002*V.y/V.x,.002), angle=vec2(0.,1.1), off;
-	vec3 color = vec3(0.);
-	vec4 pix = texture2D(B, uv), dof = vec4(pix.xyz, 1.), smpl;
+	vec2 uv = gl_FragCoord.xy / V.xy, pixel = .002 * vec2(V.y/V.x, 1.), angle = vec2(0.,1.1);
+	vec4 color = vec4(0.);
 
-	int N = 256;
-	float focus = D.z, GA = 2.4, rad = 1., r;
-	mat2 rot = mat2(cos(GA),sin(GA),-sin(GA),cos(GA));
-	for (int i=0;i<N;i++) {
-		rad += 1./rad;
-		angle*=rot;
-		off = pixel*(rad-1.)*angle;
-		smpl = texture2D(B,uv+off);
-		color += smpl.xyz;
-			r = length(off);
-			dof += step(smpl.w,pix.w)*vec4(smpl.xyz, 1.) * step(r*.01, step(r, abs(smpl.w - focus) * 1. / V.x));
+	float rad = 0.;
+	mat2 rot = mat2(cos(2.4),sin(2.4),-sin(2.4),cos(2.4));
+	for (int i = 0; i < 256; i++) {
+		vec4 sample = texture2D(B, uv + pixel * rad * angle);
+
+		//float CoC = abs(100. * .5 * (D.z - sample.w) / sample.w / (D.z - .5));
+		//gl_FragColor = vec4(fract(CoC), fract(CoC/10.), fract(CoC/100.), 0.);//min(1., CoC));
+		//gl_FragColor = vec4(CoC/10.);
+		//return;
+
+		if (abs(50. * (D.z - sample.w) / sample.w / (D.z - .5)) > rad)
+			color += vec4(sample.xyz, 1.);
+
+		rad += 1. / (rad + 1.);
+		angle *= rot;
 	}
-	color = pow(color / float(N), vec3(2.)) +  dof.xyz / dof.w;
-	gl_FragColor = vec4(pow(color / (color + 1.), vec3(1./2.2)), 1.);
+
+	gl_FragColor = vec4(pow(color.xyz / (color.xyz + color.w), vec3(1./2.2)), 1.);
 }
