@@ -2,8 +2,8 @@
 #define SAMPLE_RATE 44100
 #define BPM 92.000000
 #define MAX_INSTRUMENTS 7
-#define MAX_PATTERNS 50
-#define PATTERN_SIZE_SHIFT 4
+#define MAX_PATTERNS 49
+#define PATTERN_SIZE_SHIFT 5
 #define PATTERN_SIZE (1 << PATTERN_SIZE_SHIFT)
 #define MAX_TICKS (MAX_PATTERNS*PATTERN_SIZE)
 #define SAMPLES_PER_TICK 7190
@@ -29,3 +29,4 @@ float _4klang_envelope_buffer;
 extern "C"
 #endif
 int   _4klang_note_buffer;
+
