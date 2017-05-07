@@ -4,6 +4,7 @@
 #ifndef YRES
 #define YRES 720
 #endif
+//#define DO_RANGES
 
 #ifdef _DEBUG
 #ifdef FULLSCREEN
@@ -101,11 +102,11 @@ static __forceinline void timelineUpdate(float time) {
 	for (j = 0; j < TIMELINE_COLS; ++j) {
 		const float a = timeline_values[i + j * TIMELINE_ROWS - 1];
 		const float b = timeline_values[i + j * TIMELINE_ROWS];
-#if DO_RANGES
+#ifdef DO_RANGES
 		const float r = timeline_ranges[j];
 		TV[j] = ((a + (b - a) * time) / 255.f * 2.f - 1.f) * r;
 #else
-		TV[j] = (a + (b - a) * time) * .5f - 1.f;
+		TV[j] = ((a + (b - a) * time) - 127.f) / 2.f;
 #endif
 		//printf("%.2f ", TV[j]);
 	}
@@ -281,6 +282,7 @@ static void paint(int prog, int src_tex, int dst_fb, float time) {
 	oglUniform3f(oglGetUniformLocation(prog, "C"), TV[0], TV[1], TV[2]);
 	oglUniform3f(oglGetUniformLocation(prog, "A"), TV[3], TV[4], TV[5]);
 	oglUniform3f(oglGetUniformLocation(prog, "D"), TV[6], TV[7], TV[8]);
+	//int i; for (i = 0; i < 9; ++i) printf("%f ", TV[i]); printf("\n");
 	glRects(-1, -1, 1, 1);
 }
 

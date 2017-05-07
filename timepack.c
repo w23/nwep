@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #define MAX_KEYPOINTS 1024
+//#define DO_RANGES
 
 static void usage(const char *name) {
 	printf("Usage: %s infile outfile\n", name);
@@ -42,10 +43,10 @@ int timelineRead(FILE *f) {
 	data.column_ranges = malloc(data.columns * sizeof(float));
 
 	for (int i = 0; i < data.columns; ++i) {
-#if DO_RANGES
+#ifdef DO_RANGES
 		data.column_ranges[i] = 0;
 #else
-		data.column_ranges[i] = 127.5f;
+		data.column_ranges[i] = 63.5f;
 #endif
 	}
 
@@ -77,7 +78,7 @@ int timelineRead(FILE *f) {
 				return 0;
 			}
 
-#if DO_RANGES
+#ifdef DO_RANGES
 			const float absval = fabs(keypoint->columns[i]);
 			if (data.column_ranges[i] < absval)
 				data.column_ranges[i] = absval;
@@ -107,7 +108,7 @@ int timelineWrite(FILE *f) {
 	fprintf(f, "#define TIMELINE_COLS (%d)\n", data.columns);
 	fprintf(f, "#define TIMELINE_ROWS (%d)\n", data.rows);
 	fprintf(f, "#pragma data_seg(\".timeline_data\")\n");
-#if DO_RANGES
+#ifdef DO_RANGES
 	fprintf(f, "static const unsigned char timeline_ranges[%d] = {\n\t", data.columns);
 	for (int i = 0; i < data.columns; ++i) {
 		const float r = data.column_ranges[i];
