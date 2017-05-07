@@ -90,7 +90,7 @@ static float TV[TIMELINE_ROWS];
 static __forceinline void timelineUpdate(float time) {
 	int i, j;
 	for (i = 1; i < TIMELINE_ROWS; ++i) {
-		const float dt = timeline_times[i] * (float)(SAMPLES_PER_TICK) / (float)(SAMPLE_RATE) / 2.f;
+		const float dt = timeline_times[i] * (float)(SAMPLES_PER_TICK) / (float)(SAMPLE_RATE); // / 2.f;
 		//printf("%.2f: [i=%d; dt=%.2f, t=%.2f]\n", time, i, dt, time/dt);
 		if (dt >= time) {
 			time /= dt;
@@ -396,12 +396,13 @@ void main() {
 	SDL_SetVideoMode(XRES, YRES, 32, SDL_OPENGL);
 	glViewport(0, 0, XRES, YRES);
 	introInit();
-	uint32_t start = SDL_GetTicks();
+	const uint32_t start = SDL_GetTicks();
 	for(;;) {
+		const uint32_t now = SDL_GetTicks();
 		SDL_Event e;
 		SDL_PollEvent(&e);
-		if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE) break;
-		introPaint((SDL_GetTicks() - start) / 1000.f);
+		if ((e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE) || now >= INTRO_LENGTH) break;
+		introPaint((now - start) / 1000.f);
 		SDL_GL_SwapBuffers();
 	}
 /*
