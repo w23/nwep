@@ -24,7 +24,7 @@
 #include <mmsystem.h>
 #include <mmreg.h>
 #include <GL/gl.h>
-#if defined(_DEBUG) || defined(CAPTURE)
+#if defined(CAPTURE)
 #include <stdio.h>
 #ifdef __linux__
 #include <unistd.h>
@@ -288,7 +288,7 @@ static void paint(int prog, int src_tex, int dst_fb, float time) {
 	oglUniform3f(oglGetUniformLocation(prog, "A"), TV[3], TV[4], TV[5]);
 	oglUniform3f(oglGetUniformLocation(prog, "D"), TV[6], TV[7], TV[8]);
 	//int i; for (i = 0; i < 9; ++i) printf("%f ", TV[i]); printf("\n");
-#ifdef CAPTURE
+#if defined(CAPTURE) && defined(TILED)
 	{
 		int x, y;
 		for (y = 0; y < YRES; y += 64)
@@ -298,6 +298,7 @@ static void paint(int prog, int src_tex, int dst_fb, float time) {
 					y * 2.f / YRES - 1,
 					(x + 64) * 2.f / XRES - 1,
 					(y + 64) * 2.f / YRES - 1);
+				glFinish();
 			}
 	}
 #else
@@ -465,7 +466,7 @@ int main() {
 			total_time / 1000, (unsigned long long)total_time * total_frames / frame / 1000,
 			((unsigned long long)frame * XRES * YRES * 3) / 1024 / 1024,
 			((unsigned long long)total_frames * XRES * YRES * 3) / 1024 / 1024);
-		//usleep(1000);
+		usleep(1000);
 		frame_start = frame_end;
 #endif
 
