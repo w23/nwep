@@ -6,7 +6,7 @@ gst-launch-1.0 -v -m --gst-debug=0 \
 	videoparse format=rgb width=$W height=$H framerate=60/1 ! \
 	videoconvert ! video/x-raw,format=I420,width=$W,height=$H,framerate=60/1 ! \
 	videoflip method=vertical-flip ! \
-	vaapih264enc init-qp=21 min-qp=19 ! \
+	vaapih264enc init-qp=20 min-qp=17 keyframe-period=0 max-bframes=8 tune=high-compression ! \
 	queue ! qtmux0. \
 	filesrc location=music/nwep_full8_q16.flac ! flacparse ! flacdec ! \
 	faac ! aacparse ! \
