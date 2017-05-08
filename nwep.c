@@ -26,6 +26,9 @@
 #include <GL/gl.h>
 #if defined(_DEBUG) || defined(CAPTURE)
 #include <stdio.h>
+#ifdef __linux__
+#include <unistd.h>
+#endif
 #endif
 
 #ifdef _DEBUG
@@ -65,7 +68,9 @@ int _fltused = 1;
 #define INTRO_LENGTH (1000ull * MAX_SAMPLES / SAMPLE_RATE)
 
 #ifdef CAPTURE
+#ifndef CAPTURE_FRAMERATE
 #define CAPTURE_FRAMERATE 60
+#endif
 #define LOL(x) #x
 #define STR(x) LOL(x)
 #define FFMPEG_CAPTURE_INPUT "ffmpeg.exe -y -f rawvideo -vcodec rawvideo -s "\
@@ -90,7 +95,7 @@ static float TV[TIMELINE_ROWS];
 static __forceinline void timelineUpdate(float time) {
 	int i, j;
 	for (i = 1; i < TIMELINE_ROWS; ++i) {
-		const float dt = timeline_times[i] * (float)(SAMPLES_PER_TICK) / (float)(SAMPLE_RATE); // / 2.f;
+		const float dt = timeline_times[i] * (float)(SAMPLES_PER_TICK) / (float)(SAMPLE_RATE) / 2.f;
 		//printf("%.2f: [i=%d; dt=%.2f, t=%.2f]\n", time, i, dt, time/dt);
 		if (dt >= time) {
 			time /= dt;
@@ -147,6 +152,10 @@ static int p_ray, p_dof;
 enum { FbTex_Ray, FbTex_COUNT };
 static GLuint tex[FbTex_COUNT], fb[FbTex_COUNT];
 
+#ifdef CAPTURE
+static GLubyte backbufferData[XRES*YRES * 3];
+#endif
+
 #ifdef _WIN32
 #pragma data_seg(".gl_names")
 #define FUNCLIST_DO(T,N) "gl" #N "\0"
@@ -180,10 +189,6 @@ static const DEVMODE screenSettings = { {0},
 	#endif
 	#endif
 	};
-
-#ifdef CAPTURE
-static GLubyte backbufferData[XRES*YRES * 3];
-#endif
 
 #pragma data_seg(".wavefmt")
 static const WAVEFORMATEX WaveFMT =
@@ -267,8 +272,8 @@ static __forceinline void initFbTex(int fb, int tex) {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, XRES, YRES, 0, GL_RGBA, GL_FLOAT, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	oglBindFramebuffer(GL_FRAMEBUFFER, fb);
 	oglFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
 }
@@ -283,7 +288,21 @@ static void paint(int prog, int src_tex, int dst_fb, float time) {
 	oglUniform3f(oglGetUniformLocation(prog, "A"), TV[3], TV[4], TV[5]);
 	oglUniform3f(oglGetUniformLocation(prog, "D"), TV[6], TV[7], TV[8]);
 	//int i; for (i = 0; i < 9; ++i) printf("%f ", TV[i]); printf("\n");
+#ifdef CAPTURE
+	{
+		int x, y;
+		for (y = 0; y < YRES; y += 64)
+			for (x = 0; x < XRES; x += 64) {
+				glRectf(
+					x * 2.f / XRES - 1,
+					y * 2.f / YRES - 1,
+					(x + 64) * 2.f / XRES - 1,
+					(y + 64) * 2.f / YRES - 1);
+			}
+	}
+#else
 	glRects(-1, -1, 1, 1);
+#endif
 }
 
 static __forceinline void introInit() {
@@ -390,19 +409,66 @@ void entrypoint(void) {
 /* cc -Wall -Wno-unknown-pragmas `pkg-config --cflags --libs sdl` -lGL nwep.c -o nwep */
 #include <SDL.h>
 
+#ifdef AUDIO
+static int audio_cursor = 0;
+
+static void audioPlay(void *userdata, Uint8 *stream, int len) {
+	short *p = (short*)stream;
+	int i;
+	len /= sizeof(short);
+	for (i = 0; i < len; ++i) {
+		audio_cursor = (audio_cursor + 1) % MAX_SAMPLES;
+		p[i] = lpSoundBuffer[audio_cursor] * 32767.f;
+	}
+}
+
+static SDL_AudioSpec as = {SAMPLE_RATE, 0x8010, 2, 0, 0, 0, 0, audioPlay};
+#endif /* AUDIO */
+
 //void _start() {
-void main() {
-	SDL_Init(SDL_INIT_VIDEO);
+int main() {
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 	SDL_SetVideoMode(XRES, YRES, 32, SDL_OPENGL);
 	glViewport(0, 0, XRES, YRES);
 	introInit();
+#ifdef AUDIO
+	__4klang_render(lpSoundBuffer);
+	SDL_OpenAudio(&as, 0);
+	SDL_PauseAudio(0);
+#endif
+
+#ifndef CAPTURE
 	const uint32_t start = SDL_GetTicks();
 	for(;;) {
 		const uint32_t now = SDL_GetTicks();
+#else
+	const uint32_t global_start = SDL_GetTicks();
+	const uint32_t start = 0;
+	const uint32_t total_frames = INTRO_LENGTH * CAPTURE_FRAMERATE / 1000;
+	uint32_t frame_start = SDL_GetTicks();
+	int frame = 0;
+	for (;;) {
+		const uint32_t now = ((frame++) * 1000.f) / CAPTURE_FRAMERATE;
+#endif
 		SDL_Event e;
 		SDL_PollEvent(&e);
 		if ((e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE) || now >= INTRO_LENGTH) break;
 		introPaint((now - start) / 1000.f);
+
+#ifdef CAPTURE
+		const uint32_t frame_end = SDL_GetTicks();
+		const uint32_t total_time = frame_end - global_start;
+		glReadPixels(0, 0, XRES, YRES, GL_RGB, GL_UNSIGNED_BYTE, backbufferData);
+		write(1, backbufferData, XRES * YRES * 3);
+		fprintf(stderr, "frame %d/%d: %dms/frame, total: %ds/%llds, MBytes: %lld/%lld\n",
+			frame, total_frames, frame_end - frame_start,
+			total_time / 1000, (unsigned long long)total_time * total_frames / frame / 1000,
+			((unsigned long long)frame * XRES * YRES * 3) / 1024 / 1024,
+			((unsigned long long)total_frames * XRES * YRES * 3) / 1024 / 1024);
+		//usleep(1000);
+		frame_start = frame_end;
+#endif
+
 		SDL_GL_SwapBuffers();
 	}
 /*
@@ -412,6 +478,7 @@ void main() {
 		"int $0x80\n" \
 	);*/
 	SDL_Quit();
+	return 0;
 }
 #else
 #error Not ported
