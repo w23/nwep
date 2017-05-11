@@ -374,8 +374,9 @@ void entrypoint(void) {
 	do {
 		//waveOutGetPosition(hWaveOut, &MMTime, sizeof(MMTIME));
 #ifdef CAPTURE
-		static int time = 0;
-		time += (long)(1000. / CAPTURE_FRAMERATE);
+		static int frame = -1;
+		frame++;
+		const long time = (float)frame / CAPTURE_FRAMERATE * 1000.;
 #else
 		const int time = timeGetTime() - to;
 #endif
