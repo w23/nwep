@@ -410,8 +410,11 @@ void entrypoint(void) {
 #elif defined(__linux__)
 /* cc -Wall -Wno-unknown-pragmas `pkg-config --cflags --libs sdl` -lGL nwep.c -o nwep */
 #include <SDL.h>
+#include <pthread.h>
 
-#ifdef AUDIO
+#ifndef NO_AUDIO
+void __4klang_render(void*);
+
 static int audio_cursor = 0;
 
 static void audioPlay(void *userdata, Uint8 *stream, int len) {
@@ -419,7 +422,7 @@ static void audioPlay(void *userdata, Uint8 *stream, int len) {
 	int i;
 	len /= sizeof(short);
 	for (i = 0; i < len; ++i) {
-		audio_cursor = (audio_cursor + 1) % MAX_SAMPLES;
+		audio_cursor = (audio_cursor + 1) % (MAX_SAMPLES * 2);
 		p[i] = lpSoundBuffer[audio_cursor] * 32767.f;
 	}
 }
@@ -427,19 +430,31 @@ static void audioPlay(void *userdata, Uint8 *stream, int len) {
 static SDL_AudioSpec as = {SAMPLE_RATE, 0x8010, 2, 0, 0, 0, 0, audioPlay};
 #endif /* AUDIO */
 
-//void _start() {
+#ifndef COMPACT
 int main() {
+#else
+void _start() {
+#endif
+#ifndef NO_AUDIO
+	pthread_t audio_thread;
+	pthread_create(&audio_thread, 0, (void *(*)(void*))__4klang_render, lpSoundBuffer);
+	//__4klang_render(lpSoundBuffer);
+#endif
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
-	SDL_SetVideoMode(XRES, YRES, 32, SDL_OPENGL);
+#ifdef FULLSCREEN
+#undef FULLSCREEN
+#define FULLSCREEN SDL_FULLSCREEN
+	SDL_ShowCursor(0);
+#endif
+	SDL_SetVideoMode(XRES, YRES, 32, SDL_OPENGL | FULLSCREEN);
 	glViewport(0, 0, XRES, YRES);
 	introInit();
-#ifdef AUDIO
-	__4klang_render(lpSoundBuffer);
+
+#ifndef CAPTURE
+#ifndef NO_AUDIO
 	SDL_OpenAudio(&as, 0);
 	SDL_PauseAudio(0);
 #endif
-
-#ifndef CAPTURE
 	const uint32_t start = SDL_GetTicks();
 	for(;;) {
 		const uint32_t now = SDL_GetTicks();
@@ -473,14 +488,17 @@ int main() {
 
 		SDL_GL_SwapBuffers();
 	}
-/*
+
+#ifdef COMPACT
 	asm ( \
 		"xor %eax,%eax\n" \
 		"inc %eax\n" \
 		"int $0x80\n" \
-	);*/
+	);
+#else
 	SDL_Quit();
 	return 0;
+#endif
 }
 #else
 #error Not ported
